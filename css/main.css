@@ -1,0 +1,16 @@
+/* Created by Jacob Brogan */
+
+body {
+	background-color: #DDDDFF;
+	font-family: Verdana, Arial, sans-serif;
+	text-align: center;
+}
+
+div {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#gameCanvas {
+	border: outset 5px;
+}
