@@ -68,6 +68,34 @@ function barrierCollision(thisTile, nextTile, moveDir) {
             if (!cam.inventory[inventoryMap.indexOf(tiles.ITEM_KEY_RED)]) { return true; } else { break; }
         case tiles.SOCKET:
             if (cam.chipsLeft > 0) { return true; } else { break; }
+        case tiles.FAKE_WALL_HOLLOW:
+            if (moveDir === dir.NORTH) {
+                cam.level[cam.chip_y-1][cam.chip_x] -= tiles.FAKE_WALL_HOLLOW + tiles.FLOOR;
+            } else if (moveDir === dir.SOUTH) {
+                cam.level[cam.chip_y+1][cam.chip_x] -= tiles.FAKE_WALL_HOLLOW + tiles.FLOOR;
+            } else if (moveDir === dir.EAST) {
+                cam.level[cam.chip_y][cam.chip_x+1] -= tiles.FAKE_WALL_HOLLOW + tiles.FLOOR;
+            } else if (moveDir === dir.WEST) {
+                cam.level[cam.chip_y][cam.chip_x-1] -= tiles.FAKE_WALL_HOLLOW + tiles.FLOOR;
+            } else {
+                break;
+            }
+            break;
+        case tiles.FAKE_WALL_SOLID:
+            if (moveDir === dir.NORTH) {
+                cam.level[cam.chip_y-1][cam.chip_x] -= tiles.FAKE_WALL_SOLID - tiles.WALL;
+            } else if (moveDir === dir.SOUTH) {
+                cam.level[cam.chip_y+1][cam.chip_x] -= tiles.FAKE_WALL_SOLID - tiles.WALL;
+            } else if (moveDir === dir.EAST) {
+                cam.level[cam.chip_y][cam.chip_x+1] -= tiles.FAKE_WALL_SOLID - tiles.WALL;
+            } else if (moveDir === dir.WEST) {
+                cam.level[cam.chip_y][cam.chip_x-1] -= tiles.FAKE_WALL_SOLID - tiles.WALL;
+            } else {
+                break;
+            }
+            return true;
+        case tiles.INVISIBLE_WALL:
+            return true;
         default:
             break;
     }
@@ -89,7 +117,13 @@ function interactiveCollision() {
     var thisFloor = getLayer(thisTile, drawVars.LAYER_FLOOR);
     var retItem = false, retFloor = false;
 
+    // First, let's unload the hint if Chip moves off the Hint tile
+    if (hintShown && thisFloor !== tiles.HINT) {
+        addRequest("toggleHint");
+    }
+
     // If tile contains an item, and item is successfully added (item exists)
+    // TODO: Bug - If you hit a wall while standing on a tile, hint won't dissolve on next move
     if (thisItem && cam.addItemFromTile(thisItem * tiles.ITEM_BASE)) {
         retItem = true;
         cam.level[cam.chip_y][cam.chip_x] -= thisItem * tiles.ITEM_BASE;
@@ -180,6 +214,13 @@ function interactiveCollision() {
             case tiles.SOCKET:
                 cam.level[cam.chip_y][cam.chip_x] -= tiles.SOCKET;
                 break;
+            case tiles.HINT:
+                addRequest("toggleHint");
+                break;
+            case tiles.RECESSED_WALL:
+                cam.level[cam.chip_y][cam.chip_x] -= tiles.RECESSED_WALL;
+                cam.level[cam.chip_y][cam.chip_x] += tiles.WALL;
+                break;
             default:
                 retFloor = false;
                 break;
@@ -217,7 +258,7 @@ function fatalCollision() {
             }
             break;
         case tiles.EXIT:
-            return "Hooray, you win! Now the level will reset..."; // TODO: Silly temporary hack
+            return "WIN"; // TODO: Silly temporary hack
         default:
             break;
     }

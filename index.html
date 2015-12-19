@@ -18,10 +18,29 @@
         <script src="js/chips.tiles.js"></script>
 
 		<script src="js/chips.testData.js"></script>
+        <script>
+            function toggleAtlases() {
+                var divs = $("[id^='refDiv']");
+                for (var i = 0; i < divs.length; i++) {
+                    if (divs[i].style.display === "none") {
+                        divs[i].style.display = "block";
+                    } else {
+                        divs[i].style.display = "none";
+                    }
+                }
+            }
+        </script>
 	</head>
 	<body>
 		<div id="canvasDiv">
 			<canvas id="gameCanvas">Canvas not supported. Please update your browser!</canvas>
 		</div>
+        <div id="gameMessage" onload="this.innerHTML = defaultGameMessage;">
+            Use the arrow keys to move.
+            Press Z to cycle through available test levels.
+        </div>
+        <div>
+            <button onclick="toggleAtlases();">Toggle Atlas View</button>
+        </div>
 	</body>
 </html>

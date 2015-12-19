@@ -114,6 +114,7 @@ function drawActiveMap() {
     );
 
     var chipIsDead = fatalCollision(); // Check to see if Chip is dead - if so, the map will reset after the draw
+    var exitReached = (chipIsDead === "WIN");
 
     var xSource, ySource, xDest = 0, yDest = 0, cvm = currentVisibleMap;
     for (ySource = cvm.topLeft_y; ySource <= cvm.bottomRight_y; ySource++) {
@@ -125,7 +126,9 @@ function drawActiveMap() {
         yDest++;
     }
 
-    if (chipIsDead.length > 0) {
+    if (exitReached) {
+        winChip();
+    } else if (chipIsDead.length > 0) {
         killChip(chipIsDead);
     }
 }
@@ -168,18 +171,6 @@ function drawDebug(args) {
     canvi.gContext.fillText( debugMessage, drawX+1, drawY+1); // shadow
     canvi.gContext.fillStyle = "yellow";
     canvi.gContext.fillText( debugMessage, drawX, drawY); // bottom-left
-
-    /*
-     drawX = 6;
-     drawY = 18;
-     canvi.gContext.font = "bold 12px Arial";
-     canvi.gContext.fillStyle = "black";
-     canvi.gContext.fillText( timerElapsed, drawX+2, drawY+2); // shadow
-     canvi.gContext.fillText( timerElapsed, drawX+1, drawY+1); // shadow
-     canvi.gContext.fillStyle = "red";
-     canvi.gContext.fillText( timerElapsed, drawX, drawY); // bottom-left
-     */ //Revisit with better timer
-
 }
 
 function drawHud() {
@@ -209,7 +200,34 @@ function drawChipsLeft() {
 }
 
 function drawHint() {
+    // TODO: Inset border
+    canvi.gContext.strokeStyle = "white";
+    canvi.gContext.lineWidth = hudHintPadding_px - 1;
+    var lw = canvi.gContext.lineWidth;
+    canvi.gContext.strokeRect(hudHintOffsetX_px, hudHintOffsetY_px, hudHintWidth_px, hudHintHeight_px);
 
+    canvi.gContext.fillStyle = "black";
+    canvi.gContext.fillRect(hudHintOffsetX_px+lw/2, hudHintOffsetY_px+lw/2, hudHintWidth_px-lw, hudHintHeight_px-lw);
+
+    var lines = splitForWordWrap(currentActiveMap.hint, hudHintWidth_px-(2*hudHintPadding_px));
+
+    var fh = 12, spl = 5, h = hudHintHeight_px; // TODO: Hard-coded shit
+    var both = lines.length * (fh + spl);
+    if (both >= h) {
+        // We won't be able to wrap the text inside the area
+        // the area is too small. We should inform the user
+        // about this in a meaningful way
+    } else {
+        // We determine the y of the first line
+        var ly = hudHintOffsetY_px + 12 + 5; // TODO: Font size + border padding
+        var lx = 0;
+        canvi.gContext.fillStyle = hudHintColor;
+        for (var j = 0; j < lines.length; ++j, ly+=fh+spl) {
+            // We continue to centralize the lines
+            lx = hudHintOffsetX_px+hudHintWidth_px/2-canvi.gContext.measureText(lines[j]).width/2;
+            canvi.gContext.fillText(lines[j], lx, ly);
+        }
+    }
 }
 
 /**
@@ -290,4 +308,23 @@ function prepareForHud(str, negativeString) {
     }
 
     return retStr;
+}
+
+function splitForWordWrap(text, maxWidth_px) {
+    // Adapted from andreinc.net
+    canvi.gContext.font = hudHintFont; // TODO: Make to work outside of hint box
+
+    var words = text.split(' ');
+    var new_line = words[0];
+    var lines = [];
+    for(var i = 1; i < words.length; ++i) {
+        if (canvi.gContext.measureText(new_line + " " + words[i]).width < maxWidth_px) {
+            new_line += " " + words[i];
+        } else {
+            lines.push(new_line);
+            new_line = words[i];
+        }
+    }
+    lines.push(new_line);
+    return lines;
 }

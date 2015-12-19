@@ -76,6 +76,18 @@ function initAllEvents() {
         keyupCommon(this);
     });
 
+    // Very hacky way to cycle through test levels
+    kd.Z.down( function() {
+        if (keylock === 0){
+            loadNextLevel();
+        }
+        keydownCommon(this);
+    });
+
+    kd.Z.up( function() {
+        keyupCommon(this);
+    });
+
     function keydownCommon(oKey) {
         keylock++;
         if (debug) { drawDebug(); }
@@ -151,9 +163,16 @@ function moveChip(direction) {
 
 function killChip(msg) {
     if (!msg) { msg = "Oh dear, you are dead!" }
-    console.warn(msg); // TODO: Enhance
+    addRequest("setGameMessage",msg); // TODO: Enhance
     currentActiveMap.reset();
-    addRequest("updateMap");
+    addRequest("redrawAll");
+}
+
+function winChip() {
+    // TODO: in lieu of a dialog box...
+    addRequest("setGameMessage", "<span style='color:red'>Hooray, you completed Level " + currentActiveMap.levelNum +
+        " with a time of " + currentActiveMap.time + " seconds!</span>");
+    loadNextLevel();
 }
 
 function dialog(msg) {

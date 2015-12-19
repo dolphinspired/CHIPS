@@ -9,6 +9,8 @@ body {
 div {
 	margin-left: auto;
 	margin-right: auto;
+	padding-top: 12px;
+	padding-bottom: 12px;
 }
 
 #gameCanvas {

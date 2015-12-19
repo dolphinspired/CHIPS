@@ -5,7 +5,9 @@ var gameWindowWidth = 512;
 
 var fps = 30;
 
-/* End of mandatory variables. */
+/* Debug vars (remove eventually) */
+
+var defaultGameMessage = "Use the arrow keys to move. <br/> Press Z to cycle through available test levels.";
 
 /* Game-specific settings. */
 
@@ -36,5 +38,12 @@ var hudTimeWarningThreshold = 20;
 var hudChipsLeftOffsetX_px = 388;
 var hudChipsLeftOffsetY_px = 216;
 var hudChipsLeftWarningThreshold = 0;
+var hudHintOffsetX_px = 352;
+var hudHintOffsetY_px = 170;
+var hudHintWidth_px = 128;
+var hudHintHeight_px = 140;
+var hudHintPadding_px = 5;
+var hudHintColor = "cyan";
+var hudHintFont = "italic bold 11pt Arial";
 var hudColorNormal = "green";
 var hudColorWarning = "yellow";

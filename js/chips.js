@@ -38,7 +38,7 @@ $(document).ready(function() {
     drawGameframe();
     initAllEvents(); // See chips.events.js
 
-    addRequest("loadLevel", 1); // TODO: for testing only
+    addRequest("loadLevel", 0); // TODO: for testing only
 
     addRequest("updateGameframe");
     addRequest("updateMap");
@@ -66,7 +66,7 @@ function main() {
 
 function addRequest(str, param) {
     requests[requests.length] = str;
-    if (param) { requests[requests.length] = param }
+    if (typeof param !== "undefined") { requests[requests.length] = param }
 }
 
 function processRequests() {
@@ -108,11 +108,26 @@ function processRequests() {
             case "updateInventory":
                 drawInventory();
                 break;
+            case "toggleHint":
+                if (hintShown) {
+                    drawGameframe();
+                    drawHud();
+                    hintShown = false;
+                } else {
+                    drawHint();
+                    hintShown = true;
+                }
+                break;
             case "redrawAll":
                 drawGameframe();
                 drawActiveMap();
                 drawDebug();
                 drawHud();
+                hintShown = false;
+                break;
+            case "setGameMessage":
+                setGameMessage(requests[i+1]);
+                i++;
                 break;
             default:
                 console.warn("Unhandled request in processRequests(): " + requests[i]);
@@ -120,4 +135,8 @@ function processRequests() {
         }
     }
     requests = []; // empty all requests, assume they are handled
+}
+
+function setGameMessage(str) {
+    document.getElementById("gameMessage").innerHTML = str;
 }

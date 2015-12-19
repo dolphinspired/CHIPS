@@ -22,6 +22,7 @@ var canvi = {
 
 var currentActiveMap; // The entire level that's loaded into memory
 var currentVisibleMap; // X,Y bounds of the tiles currently visible to the player
+var hintShown = false;
 
 var drawVars = Object.freeze(new InitializeReferenceEnum());
 
@@ -82,13 +83,14 @@ function InitializeTileset() {
     this.BOMB = 36;
     this.SPAWNER = 37;
     this.HINT = 40;
-    this.CELLBLOCK = 41;
+    this.RECESSED_WALL = 41;
     this.TELEPORT = 42;
     this.BEARTRAP = 43;
     this.SWITCH_TOGGLE = 50;
     this.SWITCH_SPAWNER = 51;
     this.SWITCH_TANK = 52;
     this.SWITCH_BEARTRAP = 53;
+    this.INVISIBLE_WALL = 54;
     this.LOCK_BLUE = 60;
     this.LOCK_RED = 61;
     this.LOCK_YELLOW = 62;

@@ -12,7 +12,7 @@
  */
 function loadReferenceImage(url, id) {
 
-    $("body").append("<div id='refDiv" + id + "' style='display:block'>" +
+    $("body").append("<div id='refDiv" + id + "' style='display:none'>" +
         "<canvas id='refCanvas" + id + "'></canvas></div>");
 
     var rCanvas = document.getElementById("refCanvas" + id);
@@ -41,6 +41,15 @@ function loadLevel(levelNumber) {
     var lvl = levelNumber;
 
     return loadLevel_test(lvl);
+}
+
+function loadNextLevel() {
+    // TODO: Update for non-test levels
+    if (currentActiveMap.levelNum < numTestLevels) {
+        addRequest("loadLevel", parseInt(currentActiveMap.levelNum) + 1);
+    } else {
+        addRequest("loadLevel", 0);
+    }
 }
 
 /**
@@ -77,9 +86,9 @@ function ActiveMap(aLevel, levelNum) {
     this.chip_y_original = -1;
 
     // Then, grab (and validate) the actual values to be used for calculations
-    this.levelNum = (parseInt(aLevel[0][0]) === "NaN" ? -1 : parseInt(aLevel[0][0]));
-    this.time = (parseInt(aLevel[0][1]) === "NaN" ? -1 : parseInt(aLevel[0][1]));
-    this.chipsLeft = (parseInt(aLevel[0][2]) === "NaN" ? -1 : parseInt(aLevel[0][2]));
+    this.levelNum = (parseInt(aLevel[0][2]) === "NaN" ? -1 : parseInt(aLevel[0][2]));
+    this.time = (parseInt(aLevel[0][3]) === "NaN" ? -1 : parseInt(aLevel[0][3]));
+    this.chipsLeft = (parseInt(aLevel[0][4]) === "NaN" ? -1 : parseInt(aLevel[0][4]));
 
     // Disallow 0 as a base time
     if (this.time === 0) {
@@ -90,8 +99,10 @@ function ActiveMap(aLevel, levelNum) {
     this.elapsedTime = new InitializeLevelTimer();
 
     // Now for the remaining non-numeric info
-    this.hint = aLevel[0][3];
-    this.tilePairings = assignTilePairingsFromString(aLevel[0][4]); // Doesn't do anything yet
+    this.name = aLevel[0][0];
+    this.password = aLevel[0][1];
+    this.hint = aLevel[0][5];
+    this.tilePairings = assignTilePairingsFromString(aLevel[0][6]); // Doesn't do anything yet
 
     // THE MAP
     // Deep copy the 2d array into the activeMap object
