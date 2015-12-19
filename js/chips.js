@@ -35,6 +35,8 @@ $(document).ready(function() {
 	canvi.gCanvas.width = gameWindowWidth; // load from chips.settings.js
 	canvi.gCanvas.height = gameWindowHeight; // load from chips.settings.js
 
+    addRequest("setGameMessage", defaultGameMessage);
+
     drawGameframe();
     initAllEvents(); // See chips.events.js
 
