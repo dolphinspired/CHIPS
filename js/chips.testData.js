@@ -1,7 +1,7 @@
 /**
  * Created by Brogan on 12/9/2015.
  */
-var numTestLevels = 4; // UPDATE THIS so the z-toggle thing works
+var numTestLevels = 5; // UPDATE THIS so the z-toggle thing works
 
 var levelTest0 = [ // Map drawing test
     ['Test 00','AAAA','0','0','0','First functional level created. Tests drawing and simple collision.',''],
@@ -92,4 +92,18 @@ var levelTest4 = [ // Testing new features: fake walls, cellblocks, invis. walls
     [tiles.INVISIBLE_WALL,tiles.RECESSED_WALL,tiles.RECESSED_WALL,tiles.RECESSED_WALL,tiles.RECESSED_WALL,0,tiles.INVISIBLE_WALL,0,tiles.FAKE_WALL_SOLID,0,0,0,0,tiles.FAKE_WALL_HOLLOW,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [tiles.INVISIBLE_WALL,tiles.EXIT,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [tiles.INVISIBLE_WALL,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+];
+
+var levelTest5 = [ // Testing blocks with bombs and water
+    ['Test 05','OYES','5','500','2','Push blocks into water and bombs to make your way across',''],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,tiles.ITEM_FLIPPER,0,0,tiles.WATER,tiles.WATER,tiles.WATER,0,0,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,tiles.SOCKET,tiles.EXIT,1],
+    [1,0,0,0,tiles.WATER,tiles.WATER,tiles.WATER,0,0,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,0,tiles.SOCKET,1],
+    [1,0,tiles.BLOCK,0,tiles.WATER,tiles.WATER,tiles.WATER,0,tiles.BLOCK,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,0,0,1],
+    [1,tiles.CHIP_EAST,0,0,tiles.WATER,tiles.ITEM_CHIP,tiles.WATER,0,0,0,tiles.BOMB,tiles.ITEM_CHIP,tiles.BOMB,0,0,0,0,1],
+    [1,tiles.HINT,tiles.BLOCK,0,tiles.WATER,tiles.WATER,tiles.WATER,0,tiles.BLOCK,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,0,0,1],
+    [1,0,0,0,tiles.WATER,tiles.WATER,tiles.WATER,0,0,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,0,0,1],
+    [1,0,0,0,tiles.WATER,tiles.WATER,tiles.WATER,0,0,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+
 ];

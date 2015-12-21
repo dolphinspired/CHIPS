@@ -228,6 +228,179 @@ function ActiveMap(aLevel, levelNum) {
             return false;
         };
     }
+
+    this.getTile = function (x, y) {
+        return this.level[y][x];
+    };
+
+    this.setTile = function (x, y, tile) {
+        this.level[y][x] = tile;
+        return this.getTile(x, y);
+    };
+
+    this.getTileLayer = function(x, y, layer) {
+        return Math.floor((this.getTile(x, y) % getLayerBase(layer+1)) / getLayerBase(layer)) * getLayerBase(layer);
+    };
+
+    this.setTileLayer = function(x, y, layer, tile) {
+        var newTile = this.getTile(x, y);
+        newTile -= this.getTileLayer(x, y, layer);
+        newTile += getLayer(tile, layer) * getLayerBase(layer);
+
+        return setTile(x, y, newTile);
+    };
+
+    this.getRelativeTile = function(currentTileX, currentTileY, direction, distance) {
+        distance = distance || 0; // if distance is zero or unspecified, return the current tile
+
+        switch (direction) {
+            case dir.NORTH:
+                return this.getTile(currentTileX, currentTileY-distance);
+                break;
+            case dir.SOUTH:
+                return this.getTile(currentTileX, currentTileY+distance);
+                break;
+            case dir.EAST:
+                return this.getTile(currentTileX+distance, currentTileY);
+                break;
+            case dir.WEST:
+                return this.getTile(currentTileX-distance, currentTileY);
+                break;
+            default: // if direction is 0 or unspecified, return the current tile
+                return this.getTile(currentTileX, currentTileY);
+                break;
+        }
+    };
+
+    this.setRelativeTile = function(currentTileX, currentTileY, direction, distance, tile) {
+        distance = distance || 0; // if distance is zero or unspecified, return the current tile
+
+        switch (direction) {
+            case dir.NORTH:
+                return this.setTile(currentTileX, currentTileY-distance, tile);
+                break;
+            case dir.SOUTH:
+                return this.setTile(currentTileX, currentTileY+distance, tile);
+                break;
+            case dir.EAST:
+                return this.setTile(currentTileX+distance, currentTileY, tile);
+                break;
+            case dir.WEST:
+                return this.setTile(currentTileX-distance, currentTileY, tile);
+                break;
+            default: // if direction is 0 or unspecified, return the current tile
+                return this.setTile(currentTileX, currentTileY, tile);
+                break;
+        }
+    };
+
+    this.getRelativeTileLayer = function(currentTileX, currentTileY, direction, distance, layer) {
+        distance = distance || 0; // if distance is zero or unspecified, return the current tile
+
+        switch (direction) {
+            case dir.NORTH:
+                return this.getTileLayer(currentTileX, currentTileY-distance, layer);
+                break;
+            case dir.SOUTH:
+                return this.getTileLayer(currentTileX, currentTileY+distance, layer);
+                break;
+            case dir.EAST:
+                return this.getTileLayer(currentTileX+distance, currentTileY, layer);
+                break;
+            case dir.WEST:
+                return this.getTileLayer(currentTileX-distance, currentTileY, layer);
+                break;
+            default: // if direction is 0 or unspecified, return the current tile
+                return this.getTileLayer(currentTileX, currentTileY, layer);
+                break;
+        }
+    };
+
+    this.setRelativeTileLayer = function(currentTileX, currentTileY, direction, distance, layer, tile) {
+        distance = distance || 0; // if distance is zero or unspecified, return the current tile
+
+        switch (direction) {
+            case dir.NORTH:
+                return this.setTileLayer(currentTileX, currentTileY-distance, layer, tile);
+                break;
+            case dir.SOUTH:
+                return this.setTileLayer(currentTileX, currentTileY+distance, layer, tile);
+                break;
+            case dir.EAST:
+                return this.setTileLayer(currentTileX+distance, currentTileY, layer, tile);
+                break;
+            case dir.WEST:
+                return this.setTileLayer(currentTileX-distance, currentTileY, layer, tile);
+                break;
+            default: // if direction is 0 or unspecified, return the current tile
+                return this.setTile(currentTileX, currentTileY, layer, tile);
+                break;
+        }
+    };
+
+    this.getNextTile = function(currentTileX, currentTileY, direction) {
+        return this.getRelativeTile(currentTileX, currentTileY, direction, 1);
+    };
+
+    this.setNextTile = function(currentTileX, currentTileY, direction, tile) {
+        return this.setRelativeTile(currentTileX, currentTileY, direction, 1, tile);
+    };
+
+    this.getNextTileLayer = function(currentTileX, currentTileY, direction, layer) {
+        return this.getRelativeTileLayer(currentTileX, currentTileY, direction, 1, layer);
+    };
+
+    this.setNextTileLayer = function(currentTileX, currentTileY, direction, layer, tile) {
+        return this.setRelativeTileLayer(currentTileX, currentTileY, direction, 1, layer, tile);
+    };
+
+    this.getChipsTile = function() {
+        return this.getTile(this.chip_x, this.chip_y);
+    };
+
+    this.setChipsTile = function(tile) {
+        return this.setTile(this.chip_x, this.chip_y, tile);
+    };
+
+    this.getChipsTileLayer = function(layer) {
+        return this.getTileLayer(this.chip_x, this.chip_y, layer);
+    };
+
+    this.setChipsTileLayer = function(layer, tile) {
+        return this.setTileLayer(this.chip_x, this.chip_y, layer, tile);
+    };
+
+    this.getChipsRelativeTile = function(direction, distance) {
+        return this.getRelativeTile(this.chip_x, this.chip_y, direction, distance);
+    };
+
+    this.setChipsRelativeTile = function(direction, distance, tile) {
+        return this.setRelativeTile(this.chip_x, this.chip_y, direction, distance, tile);
+    };
+
+    this.getChipsRelativeTileLayer = function(direction, distance, layer) {
+        return this.getRelativeTileLayer(this.chip_x, this.chip_y, direction, distance, layer);
+    };
+
+    this.setChipsRelativeTileLayer = function(direction, distance, layer, tile) {
+        return this.setRelativeTileLayer(this.chip_x, this.chip_y, direction, distance, layer, tile);
+    };
+
+    this.getChipsNextTile = function(direction) {
+        return this.getNextTile(this.chip_x, this.chip_y, direction);
+    };
+
+    this.setChipsNextTile = function(direction, tile) {
+        return this.setNextTile(this.chip_x, this.chip_y, direction, tile);
+    };
+
+    this.getChipsNextTileLayer = function(direction, layer) {
+        return this.getNextTileLayer(this.chip_x, this.chip_y, direction, layer);
+    };
+
+    this.setChipsNextTileLayer = function(direction, layer, tile) {
+        return this.setNextTileLayer(this.chip_x, this.chip_y, direction, layer, tile);
+    };
 }
 
 function VisibleMap(map) {

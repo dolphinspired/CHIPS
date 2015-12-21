@@ -16,8 +16,12 @@ function barrierCollision(thisTile, nextTile, moveDir) {
     var cam = currentActiveMap, d = moveDir;
 
     // Is there collision with a solid tile? If so, return true;
-    var thisFloor = getLayer(thisTile, drawVars.LAYER_FLOOR);
-    var nextFloor = getLayer(nextTile, drawVars.LAYER_FLOOR);
+    var thisFloor = cam.getChipsTileLayer(drawVars.LAYER_FLOOR);
+    var thisItem = cam.getChipsTileLayer(drawVars.LAYER_ITEM);
+    var thisEnemy = cam.getChipsTileLayer(drawVars.LAYER_ENEMY);
+    var nextFloor = cam.getChipsNextTileLayer(d, drawVars.LAYER_FLOOR);
+    var nextItem = cam.getChipsNextTileLayer(d, drawVars.LAYER_ITEM);
+    var nextEnemy = cam.getChipsNextTileLayer(d, drawVars.LAYER_ENEMY);
 
     // TODO: think of a more modular way to get tile solidity information
     switch (thisFloor) {
@@ -69,30 +73,10 @@ function barrierCollision(thisTile, nextTile, moveDir) {
         case tiles.SOCKET:
             if (cam.chipsLeft > 0) { return true; } else { break; }
         case tiles.FAKE_WALL_HOLLOW:
-            if (moveDir === dir.NORTH) {
-                cam.level[cam.chip_y-1][cam.chip_x] -= tiles.FAKE_WALL_HOLLOW + tiles.FLOOR;
-            } else if (moveDir === dir.SOUTH) {
-                cam.level[cam.chip_y+1][cam.chip_x] -= tiles.FAKE_WALL_HOLLOW + tiles.FLOOR;
-            } else if (moveDir === dir.EAST) {
-                cam.level[cam.chip_y][cam.chip_x+1] -= tiles.FAKE_WALL_HOLLOW + tiles.FLOOR;
-            } else if (moveDir === dir.WEST) {
-                cam.level[cam.chip_y][cam.chip_x-1] -= tiles.FAKE_WALL_HOLLOW + tiles.FLOOR;
-            } else {
-                break;
-            }
+            cam.setChipsNextTile(d, tiles.FLOOR);
             break;
         case tiles.FAKE_WALL_SOLID:
-            if (moveDir === dir.NORTH) {
-                cam.level[cam.chip_y-1][cam.chip_x] -= tiles.FAKE_WALL_SOLID - tiles.WALL;
-            } else if (moveDir === dir.SOUTH) {
-                cam.level[cam.chip_y+1][cam.chip_x] -= tiles.FAKE_WALL_SOLID - tiles.WALL;
-            } else if (moveDir === dir.EAST) {
-                cam.level[cam.chip_y][cam.chip_x+1] -= tiles.FAKE_WALL_SOLID - tiles.WALL;
-            } else if (moveDir === dir.WEST) {
-                cam.level[cam.chip_y][cam.chip_x-1] -= tiles.FAKE_WALL_SOLID - tiles.WALL;
-            } else {
-                break;
-            }
+            cam.setChipsNextTile(d, tiles.WALL);
             return true;
         case tiles.INVISIBLE_WALL:
             return true;
@@ -243,7 +227,7 @@ function fatalCollision() {
 
     // All enemies are currently handled the same - Chip is killed
     if (enemyLayer) {
-        return "Oh dead, you are dead!";
+        return "Oh dear, you are dead!";
     }
 
     switch (floorLayer) {
@@ -256,6 +240,9 @@ function fatalCollision() {
             if (!currentActiveMap.inventory[inventoryMap.indexOf(tiles.ITEM_BOOT)]) {
                 return "Chip can't walk on fire without boots!";
             }
+            break;
+        case tiles.BOMB:
+            return "Oh dear, you are dead!";
             break;
         case tiles.EXIT:
             return "WIN"; // TODO: Silly temporary hack

@@ -28,6 +28,10 @@ function getLayerCoord(num, radixPlace) {
     return Math.floor(num / (Math.pow(drawVars.LAYER_SIZE_BITS,radixPlace)) % drawVars.LAYER_SIZE_BITS);
 }
 
+function getLayerBase(layer) {
+    return Math.pow(drawVars.LAYER_SIZE_BITS,2*layer);
+}
+
 /**
  * function getAllLayerCoords
  * Gets x,y "digits" for each layer of a tile

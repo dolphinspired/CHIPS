@@ -102,10 +102,6 @@ function blendLayers(lowerImageData, upperImageData) {
  * Draws the part of the level that's currently visible in the game window
  */
 function drawActiveMap() {
-    if (currentActiveMap.length <= 0) {
-        logOnce("Problem with drawTiles() - currentActiveMap is empty.");
-        return false;
-    }
 
     // Clear out the visible board before redrawing
     canvi.gContext.clearRect(boardOffsetX_px,boardOffsetY_px,
