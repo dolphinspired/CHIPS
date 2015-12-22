@@ -128,25 +128,25 @@ function moveChip(direction) {
     switch (d) {
         case dir.NORTH:
             if (!edgeCollision(d)) { nextTile = cam.level[cam.chip_y-1][cam.chip_x]; }
-            if (typeof nextTile !== "undefined" && !barrierCollision(thisTile, nextTile, d)) { cam.chip_y--; }
+            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) { cam.chip_y--; }
             cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_NORTH;
             cam.chip_facing = dir.NORTH;
             break;
         case dir.WEST:
             if (!edgeCollision(d)) { nextTile = cam.level[cam.chip_y][cam.chip_x-1]; }
-            if (typeof nextTile !== "undefined" && !barrierCollision(thisTile, nextTile, d)) { cam.chip_x--; }
+            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) { cam.chip_x--; }
             cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_WEST;
             cam.chip_facing = dir.WEST;
             break;
         case dir.SOUTH:
             if (!edgeCollision(d)) { nextTile = cam.level[cam.chip_y+1][cam.chip_x]; }
-            if (typeof nextTile !== "undefined" && !barrierCollision(thisTile, nextTile, d)) { cam.chip_y++; }
+            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) { cam.chip_y++; }
             cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_SOUTH;
             cam.chip_facing = dir.SOUTH;
             break;
         case dir.EAST:
             if (!edgeCollision(d)) { nextTile = cam.level[cam.chip_y][cam.chip_x+1]; }
-            if (typeof nextTile !== "undefined" && !barrierCollision(thisTile, nextTile, d)) { cam.chip_x++; }
+            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) { cam.chip_x++; }
             cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_EAST;
             cam.chip_facing = dir.EAST;
             break;

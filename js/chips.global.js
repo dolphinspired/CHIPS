@@ -204,6 +204,7 @@ function InitializeGameStates() {
 }
 
 // Stores the order of how items should appear in the inventory frame
+// TODO: Try and drop this in favor of the items object
 var inventoryMap = Object.freeze([
     tiles.ITEM_KEY_BLUE,
     tiles.ITEM_KEY_RED,
@@ -214,6 +215,19 @@ var inventoryMap = Object.freeze([
     tiles.ITEM_BOOT,
     tiles.ITEM_SUCTIONSHOES
 ]);
+
+var items = new InitializeItems();
+
+function InitializeItems() {
+    this.ITEM_KEY_BLUE = 0;
+    this.ITEM_KEY_RED = 1;
+    this.ITEM_KEY_YELLOW = 2;
+    this.ITEM_KEY_GREEN = 3;
+    this.ITEM_FLIPPER = 4;
+    this.ITEM_SKATE = 5;
+    this.ITEM_BOOT = 6;
+    this.ITEM_SUCTIONSHOES = 7;
+}
 
 function InitializeLevelTimer() {
     this.start = Date.now();

@@ -247,7 +247,11 @@ function ActiveMap(aLevel, levelNum) {
         newTile -= this.getTileLayer(x, y, layer);
         newTile += getLayer(tile, layer) * getLayerBase(layer);
 
-        return setTile(x, y, newTile);
+        return this.setTile(x, y, newTile);
+    };
+
+    this.clearTileLayer = function(x, y, layer) {
+        return this.setTileLayer(x, y, layer, 0);
     };
 
     this.getRelativeTile = function(currentTileX, currentTileY, direction, distance) {
@@ -338,6 +342,10 @@ function ActiveMap(aLevel, levelNum) {
         }
     };
 
+    this.clearRelativeTileLayer = function(currentTileX, currentTileY, direction, distance, layer) {
+        return this.setRelativeTileLayer(currentTileX, currentTileY, direction, distance, layer, 0);
+    };
+
     this.getNextTile = function(currentTileX, currentTileY, direction) {
         return this.getRelativeTile(currentTileX, currentTileY, direction, 1);
     };
@@ -352,6 +360,10 @@ function ActiveMap(aLevel, levelNum) {
 
     this.setNextTileLayer = function(currentTileX, currentTileY, direction, layer, tile) {
         return this.setRelativeTileLayer(currentTileX, currentTileY, direction, 1, layer, tile);
+    };
+
+    this.clearNextTileLayer = function(currentTileX, currentTileY, direction, layer) {
+        return this.setNextTileLayer(currentTileX, currentTileY, direction, layer, 0);
     };
 
     this.getChipsTile = function() {
@@ -370,6 +382,10 @@ function ActiveMap(aLevel, levelNum) {
         return this.setTileLayer(this.chip_x, this.chip_y, layer, tile);
     };
 
+    this.clearChipsTileLayer = function(layer) {
+        return this.clearTileLayer(this.chip_x, this.chip_y, layer);
+    };
+
     this.getChipsRelativeTile = function(direction, distance) {
         return this.getRelativeTile(this.chip_x, this.chip_y, direction, distance);
     };
@@ -386,6 +402,10 @@ function ActiveMap(aLevel, levelNum) {
         return this.setRelativeTileLayer(this.chip_x, this.chip_y, direction, distance, layer, tile);
     };
 
+    this.clearChipsRelativeTileLayer = function(direction, distance, layer) {
+        return this.clearRelativeTileLayer(this.chip_x, this.chip_y, direction, distance, layer);
+    };
+
     this.getChipsNextTile = function(direction) {
         return this.getNextTile(this.chip_x, this.chip_y, direction);
     };
@@ -400,6 +420,10 @@ function ActiveMap(aLevel, levelNum) {
 
     this.setChipsNextTileLayer = function(direction, layer, tile) {
         return this.setNextTileLayer(this.chip_x, this.chip_y, direction, layer, tile);
+    };
+
+    this.clearChipsNextTileLayer = function(direction, layer) {
+        return this.clearNextTileLayer(direction, layer);
     };
 }
 

@@ -45,9 +45,8 @@ function drawTile(tile, xDest_tile, yDest_tile, offsetX_px, offsetY_px) {
     var tileImageData = canvi.tContext.createImageData(t,t);
 
     var allLayerCoords = getAllLayerCoords(tile);
-    var xSource_px;
-    var ySource_px;
-    var numLayer;
+    var xSource_px,  ySource_px, numLayer;
+    var thisFloor = currentActiveMap.getTileLayer(xDest_tile, yDest_tile, drawVars.LAYER_FLOOR);
 
     // Grab the source px for each layer of the tile, then blend it with the layer below
     for (var i = 0; i < drawVars.NUM_LAYERS; i++) {
@@ -58,8 +57,15 @@ function drawTile(tile, xDest_tile, yDest_tile, offsetX_px, offsetY_px) {
         if (numLayer > 1 && xSource_px % p === 0 && ySource_px % p === 0) {
             // If tile is not defined in this layer (above 1), skip drawing
         } else if (numLayer > 1) {
-            // Layers > 1 need to blend into the lower layers
-            tileImageData = blendLayers(tileImageData, canvi.tContext.getImageData(xSource_px,ySource_px,t,t));
+            // EXCEPTIONS: Do not draw items over fake walls or blocks
+            // TODO: Add obscurity tag/value?
+            // TODO: fix this +1 nonsense
+            if (numLayer === drawVars.LAYER_ITEM+1 && (thisFloor === tiles.FAKE_WALL_HOLLOW || thisFloor === tiles.BLOCK)) {
+                // Do nothing
+            } else {
+                // Layers > 1 need to blend into the lower layers
+                tileImageData = blendLayers(tileImageData, canvi.tContext.getImageData(xSource_px,ySource_px,t,t));
+            }
         } else {
             // Layer 1 can skip the blend step
             tileImageData = canvi.tContext.getImageData(xSource_px,ySource_px,t,t);

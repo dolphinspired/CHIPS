@@ -99,9 +99,9 @@ var levelTest5 = [ // Testing blocks with bombs and water
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     [1,tiles.ITEM_FLIPPER,0,0,tiles.WATER,tiles.WATER,tiles.WATER,0,0,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,tiles.SOCKET,tiles.EXIT,1],
     [1,0,0,0,tiles.WATER,tiles.WATER,tiles.WATER,0,0,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,0,tiles.SOCKET,1],
-    [1,0,tiles.BLOCK,0,tiles.WATER,tiles.WATER,tiles.WATER,0,tiles.BLOCK,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,0,0,1],
+    [1,0,tiles.BLOCK,tiles.ITEM_BOOT,tiles.WATER,tiles.WATER,tiles.WATER,0,tiles.BLOCK,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,0,0,1],
     [1,tiles.CHIP_EAST,0,0,tiles.WATER,tiles.ITEM_CHIP,tiles.WATER,0,0,0,tiles.BOMB,tiles.ITEM_CHIP,tiles.BOMB,0,0,0,0,1],
-    [1,tiles.HINT,tiles.BLOCK,0,tiles.WATER,tiles.WATER,tiles.WATER,0,tiles.BLOCK,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,0,0,1],
+    [1,tiles.HINT,tiles.BLOCK,tiles.ITEM_SKATE,tiles.WATER,tiles.WATER,tiles.WATER,0,tiles.BLOCK,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,0,0,1],
     [1,0,0,0,tiles.WATER,tiles.WATER,tiles.WATER,0,0,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,0,0,1],
     [1,0,0,0,tiles.WATER,tiles.WATER,tiles.WATER,0,0,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,0,0,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
