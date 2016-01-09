@@ -1,7 +1,7 @@
 /**
  * Created by Brogan on 12/9/2015.
  */
-var numTestLevels = 5; // UPDATE THIS so the z-toggle thing works
+var numTestLevels = 6; // UPDATE THIS so the z-toggle thing works
 
 var levelTest0 = [ // Map drawing test
     ['Test 00','AAAA','0','0','0','First functional level created. Tests drawing and simple collision.',''],
@@ -106,4 +106,24 @@ var levelTest5 = [ // Testing blocks with bombs and water
     [1,0,0,0,tiles.WATER,tiles.WATER,tiles.WATER,0,0,0,tiles.BOMB,tiles.BOMB,tiles.BOMB,0,0,0,0,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 
+];
+
+var levelTest6 = [
+    ['Toggle Boggle', 'TOGG', '6', '999', '4' , 'Let\'s get freaky with toggle walls',''],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,tiles.CHIP_NORTH,0,1,tiles.SWITCH_TOGGLE,tiles.ITEM_CHIP,1,0,tiles.ITEM_CHIP,1,0,tiles.ITEM_CHIP,1],
+    [1,tiles.HINT,tiles.SWITCH_TOGGLE,tiles.TOGGLE_CLOSED,0,0,1,tiles.SWITCH_TOGGLE,0,tiles.TOGGLE_OPEN,0,0,1],
+    [1,1,1,1,1,tiles.TOGGLE_OPEN,1,1,tiles.TOGGLE_CLOSED,1,1,1,1],
+    [1,tiles.ITEM_CHIP,0,1,0,0,1,0,0,1,0,0,1],
+    [1,tiles.SWITCH_TOGGLE,0,tiles.TOGGLE_CLOSED,tiles.SWITCH_TOGGLE,0,tiles.TOGGLE_OPEN,0,tiles.SWITCH_TOGGLE,1,0,0,1],
+    [1,tiles.TOGGLE_CLOSED,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,tiles.SOCKET,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,1,0,0,1,0,0,1,0,0,1],
+    [1,tiles.EXIT,0,1,0,0,1,0,0,1,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,1,0,0,1,0,0,1,0,0,1],
+    [1,0,0,1,0,0,1,0,0,1,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1]
 ];

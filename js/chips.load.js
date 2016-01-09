@@ -229,6 +229,24 @@ function ActiveMap(aLevel, levelNum) {
         };
     }
 
+    this.toggleFloors = function() {
+        var thisFloor;
+        for (var y = 0; y < this.level.length; y++) {
+            for (var x = 0; x < this.level[y].length; x++) {
+                thisFloor = this.getTileLayer(x, y, drawVars.LAYER_FLOOR);
+                if (thisFloor === tiles.TOGGLE_CLOSED) {
+                    this.setTileLayer(x, y, drawVars.LAYER_FLOOR, tiles.TOGGLE_OPEN);
+                } else if (thisFloor === tiles.TOGGLE_OPEN) {
+                    this.setTileLayer(x, y, drawVars.LAYER_FLOOR, tiles.TOGGLE_CLOSED);
+                }
+            }
+        }
+    };
+
+    this.moveTanks = function() {
+
+    };
+
     this.getTile = function (x, y) {
         return this.level[y][x];
     };
@@ -423,7 +441,7 @@ function ActiveMap(aLevel, levelNum) {
     };
 
     this.clearChipsNextTileLayer = function(direction, layer) {
-        return this.clearNextTileLayer(direction, layer);
+        return this.clearNextTileLayer(this.chip_x, this.chip_y, direction, layer);
     };
 }
 

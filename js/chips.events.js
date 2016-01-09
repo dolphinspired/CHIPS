@@ -7,6 +7,12 @@
 
 function initAllEvents() {
 
+    // On-screen buttons
+    $("#buttonUp").on("click", function() { moveChip(dir.NORTH) });
+    $("#buttonLeft").on("click", function() { moveChip(dir.WEST) });
+    $("#buttonDown").on("click", function() { moveChip(dir.SOUTH) });
+    $("#buttonRight").on("click", function() { moveChip(dir.EAST) });
+
     // Prevent default behavior (page scrolling) with arrow keys
     $(document).on("keydown", function(e) {
         $.each(keys, function (k, val) {
@@ -110,8 +116,7 @@ function initAllEvents() {
  */
 function moveChip(direction) {
     var cam = currentActiveMap, d = direction;
-    var thisTile = cam.level[cam.chip_y][cam.chip_x];
-    var nextTile;
+    var nextTile, chipHasMoved = false;
 
     // Remove Chip from the map*
     // *Works only as long as Chip is on the TOP layer. In the future, refactor to allow higher tile layer.
@@ -128,25 +133,37 @@ function moveChip(direction) {
     switch (d) {
         case dir.NORTH:
             if (!edgeCollision(d)) { nextTile = cam.level[cam.chip_y-1][cam.chip_x]; }
-            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) { cam.chip_y--; }
+            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) {
+                cam.chip_y--;
+                chipHasMoved = true;
+            }
             cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_NORTH;
             cam.chip_facing = dir.NORTH;
             break;
         case dir.WEST:
             if (!edgeCollision(d)) { nextTile = cam.level[cam.chip_y][cam.chip_x-1]; }
-            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) { cam.chip_x--; }
+            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) {
+                cam.chip_x--;
+                chipHasMoved = true;
+            }
             cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_WEST;
             cam.chip_facing = dir.WEST;
             break;
         case dir.SOUTH:
             if (!edgeCollision(d)) { nextTile = cam.level[cam.chip_y+1][cam.chip_x]; }
-            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) { cam.chip_y++; }
+            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) {
+                cam.chip_y++;
+                chipHasMoved = true;
+            }
             cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_SOUTH;
             cam.chip_facing = dir.SOUTH;
             break;
         case dir.EAST:
             if (!edgeCollision(d)) { nextTile = cam.level[cam.chip_y][cam.chip_x+1]; }
-            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) { cam.chip_x++; }
+            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) {
+                cam.chip_x++;
+                chipHasMoved = true;
+            }
             cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_EAST;
             cam.chip_facing = dir.EAST;
             break;
@@ -154,7 +171,9 @@ function moveChip(direction) {
             cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_SOUTH;
             break;
     }
-    interactiveCollision(); // For all events on the tile that Chip has moved onto
+    if (chipHasMoved) {
+        interactiveCollision(); // For all events on the tile that Chip has moved onto
+    }
 
     currentVisibleMap.update();
     addRequest("updateMap");

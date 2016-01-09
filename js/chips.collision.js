@@ -109,6 +109,10 @@ function barrierCollision(currentX, currentY, moveDir) {
                 cam.setRelativeTileLayer(x, y, d, 2, drawVars.LAYER_FLOOR, tiles.BLOCK);
             }
             break;
+        case tiles.TOGGLE_OPEN:
+            return false;
+        case tiles.TOGGLE_CLOSED:
+            return true;
         default:
             break;
     }
@@ -233,6 +237,9 @@ function interactiveCollision() {
                 break;
             case tiles.MUD:
                 cam.setChipsTileLayer(drawVars.LAYER_FLOOR, tiles.FLOOR);
+                break;
+            case tiles.SWITCH_TOGGLE:
+                cam.toggleFloors();
                 break;
             default:
                 retFloor = false;

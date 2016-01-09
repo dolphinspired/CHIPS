@@ -16,3 +16,7 @@ div {
 #gameCanvas {
 	border: outset 5px;
 }
+
+button.totesTouchscreenCompatible {
+    font-size: 36px;
+}

@@ -45,23 +45,20 @@ function drawTile(tile, xDest_tile, yDest_tile, offsetX_px, offsetY_px) {
     var tileImageData = canvi.tContext.createImageData(t,t);
 
     var allLayerCoords = getAllLayerCoords(tile);
-    var xSource_px,  ySource_px, numLayer;
-    var thisFloor = currentActiveMap.getTileLayer(xDest_tile, yDest_tile, drawVars.LAYER_FLOOR);
+    var xSource_px,  ySource_px;
 
     // Grab the source px for each layer of the tile, then blend it with the layer below
-    for (var i = 0; i < drawVars.NUM_LAYERS; i++) {
-        numLayer = i + 1;
-        xSource_px = allLayerCoords[2*i+1] * t + layerOffsets.x[numLayer];
-        ySource_px = allLayerCoords[2*i] * t + layerOffsets.y[numLayer];
+    for (var curLayer = 0; curLayer < drawVars.NUM_LAYERS; curLayer++) {
+        xSource_px = allLayerCoords[2*curLayer+1] * t + layerOffsets.x[curLayer+1];
+        ySource_px = allLayerCoords[2*curLayer] * t + layerOffsets.y[curLayer+1];
 
-        if (numLayer > 1 && xSource_px % p === 0 && ySource_px % p === 0) {
-            // If tile is not defined in this layer (above 1), skip drawing
-        } else if (numLayer > 1) {
-            // EXCEPTIONS: Do not draw items over fake walls or blocks
-            // TODO: Add obscurity tag/value?
-            // TODO: fix this +1 nonsense
-            if (numLayer === drawVars.LAYER_ITEM+1 && (thisFloor === tiles.FAKE_WALL_HOLLOW || thisFloor === tiles.BLOCK)) {
+        if (curLayer > 0 && xSource_px % p === 0 && ySource_px % p === 0) {
+            // If tile is not defined in this layer (above floor layer), skip drawing
+        } else if (curLayer > 0) {
+
+            if (curLayer === drawVars.LAYER_ITEM && this.obscuresItems(getLayer(tile, drawVars.LAYER_FLOOR))) {
                 // Do nothing
+                continue;
             } else {
                 // Layers > 1 need to blend into the lower layers
                 tileImageData = blendLayers(tileImageData, canvi.tContext.getImageData(xSource_px,ySource_px,t,t));
@@ -78,6 +75,11 @@ function drawTile(tile, xDest_tile, yDest_tile, offsetX_px, offsetY_px) {
         xDest_tile * t + xOffset,
         yDest_tile * t + yOffset
     );
+
+    // TODO: Add obscurity tag/value?
+    this.obscuresItems = function(tile) {
+        return (tile === tiles.BLOCK || tile === tiles.FAKE_WALL_HOLLOW)
+    };
 
     return true;
 }
