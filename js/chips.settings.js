@@ -7,7 +7,8 @@ var fps = 30;
 
 /* Debug vars (remove eventually) */
 
-var defaultGameMessage = "Use the arrow keys to move. <br/> Press Z to cycle through available test levels." +
+var defaultGameMessage = "Use your keyboard's arrow keys or the buttons above to move. " +
+    "<br/> Press Z to cycle through available test levels." +
     "<br/> Click \"Redraw Screen\" below if the game image doesn't load immediately.";
 
 /* Game-specific settings. */

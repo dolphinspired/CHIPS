@@ -93,6 +93,9 @@ function barrierCollision(currentX, currentY, moveDir) {
             return true;
         case tiles.INVISIBLE_WALL:
             return true;
+        case tiles.INVISIBLE_WALL_SHOW:
+            cam.setNextTileLayer(x, y, d, drawVars.LAYER_FLOOR, tiles.WALL);
+            return barrierCollision(x, y, d);
         case tiles.BLOCK: // TODO: modularize this
             if (thisFloor === tiles.BLOCK) {
                 return true;

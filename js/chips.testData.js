@@ -1,7 +1,7 @@
 /**
  * Created by Brogan on 12/9/2015.
  */
-var numTestLevels = 6; // UPDATE THIS so the z-toggle thing works
+var numTestLevels = 7; // UPDATE THIS so the z-toggle thing works
 
 var levelTest0 = [ // Map drawing test
     ['Test 00','AAAA','0','0','0','First functional level created. Tests drawing and simple collision.',''],
@@ -91,7 +91,7 @@ var levelTest4 = [ // Testing new features: fake walls, cellblocks, invis. walls
     [tiles.INVISIBLE_WALL,tiles.RECESSED_WALL,tiles.RECESSED_WALL,tiles.RECESSED_WALL,tiles.RECESSED_WALL,0,0,0,tiles.FAKE_WALL_SOLID,0,tiles.FAKE_WALL_SOLID,tiles.FAKE_WALL_SOLID,0,tiles.FAKE_WALL_HOLLOW,0,tiles.FAKE_WALL_HOLLOW,tiles.FAKE_WALL_HOLLOW,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [tiles.INVISIBLE_WALL,tiles.RECESSED_WALL,tiles.RECESSED_WALL,tiles.RECESSED_WALL,tiles.RECESSED_WALL,0,tiles.INVISIBLE_WALL,0,tiles.FAKE_WALL_SOLID,0,0,0,0,tiles.FAKE_WALL_HOLLOW,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     [tiles.INVISIBLE_WALL,tiles.EXIT,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [tiles.INVISIBLE_WALL,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+    [tiles.INVISIBLE_WALL,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW,tiles.INVISIBLE_WALL_SHOW]
 ];
 
 var levelTest5 = [ // Testing blocks with bombs and water
@@ -126,4 +126,17 @@ var levelTest6 = [
     [1,0,0,1,0,0,1,0,0,1,0,0,1],
     [1,0,0,1,0,0,1,0,0,1,0,0,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
+
+var levelTest7 = [ // Map drawing test
+    ['Slide Reel','SLID','123','250','1','Ice to meet you :O',''],
+    [1,1,1,1,1,1,1,1,1],
+    [1,tiles.ICE_WALL_NORTHWEST,tiles.ICE,tiles.ICE,tiles.GRAVEL,tiles.ICE,tiles.ICE,tiles.ICE_WALL_NORTHEAST,1],
+    [1,tiles.ICE,tiles.ITEM_SKATE,0,0,0,0,tiles.ICE,1],
+    [1,tiles.ICE,0,tiles.ICE,tiles.ICE,tiles.ICE,0,tiles.ICE,1],
+    [tiles.EXIT,tiles.GRAVEL,0,tiles.ICE,tiles.CHIP_SOUTH,tiles.ICE,0,tiles.GRAVEL,1],
+    [1,tiles.ICE,0,tiles.ICE,tiles.ICE,tiles.ICE,0,tiles.ICE,1],
+    [1,tiles.ICE,0,0,tiles.HINT,0,0,tiles.ICE,1],
+    [1,tiles.ICE_WALL_SOUTHWEST,tiles.ICE,tiles.ICE,tiles.GRAVEL,tiles.ICE,tiles.ICE,tiles.ICE_WALL_SOUTHEAST,1],
+    [1,1,1,1,1,1,1,1,1]
 ];

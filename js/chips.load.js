@@ -243,6 +243,8 @@ function ActiveMap(aLevel, levelNum) {
         }
     };
 
+    this.slideList = []; // List of everything that needs to auto-move, as on ice, force floorts, etc.
+
     this.moveTanks = function() {
 
     };

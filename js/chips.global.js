@@ -6,6 +6,7 @@ var state = 0; // what state is the game in? 0 = first load
 var keylock = 0; // how long has the current key been held down?
 var requests = []; // operations that should not be performed every frame
 var debug = true; // debug messages on? (where flagged)
+var turnTime = 200; // Classic time between Chip's steps, in milliseconds
 
 var onceLogged = false; // for logOnce function
 
@@ -78,10 +79,10 @@ function InitializeTileset() {
     this.FIRE = 31;
     this.ICE = 32;
     this.FORCE_FLOOR_RANDOM = 33;
-    this.ASPHALT = 34;
+    this.GRAVEL = 34;
     this.THIEF = 35;
     this.BOMB = 36;
-    this.SPAWNER = 37;
+    this.CLONER = 37;
     this.HINT = 40;
     this.RECESSED_WALL = 41;
     this.TELEPORT = 42;
@@ -91,6 +92,7 @@ function InitializeTileset() {
     this.SWITCH_TANK = 52;
     this.SWITCH_BEARTRAP = 53;
     this.INVISIBLE_WALL = 54;
+    this.INVISIBLE_WALL_SHOW = 55;
     this.LOCK_BLUE = 60;
     this.LOCK_RED = 61;
     this.LOCK_YELLOW = 62;
