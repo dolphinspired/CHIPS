@@ -20,3 +20,22 @@ div {
 button.totesTouchscreenCompatible {
     font-size: 36px;
 }
+
+div.linkbar {
+    font-family: Tahoma, Verdana, Segoe, sans-serif;
+    font-size: 12px;
+    padding: 0;
+}
+
+div.linkbar a {
+    text-decoration: none;
+    font-weight: bold;
+}
+
+div.linkbar a:visited {
+    color: blue;
+}
+
+div.linkbar a:hover {
+    color: orangered;
+}

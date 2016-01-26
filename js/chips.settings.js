@@ -7,15 +7,15 @@ var fps = 30;
 
 /* Debug vars (remove eventually) */
 
-var defaultGameMessage = "Use your keyboard's arrow keys or the buttons above to move. " +
-    "<br/> Press Z to cycle through available test levels." +
-    "<br/> Click \"Redraw Screen\" below if the game image doesn't load immediately.";
+var defaultGameMessage = "Click \"Redraw Screen\" below if the game image doesn't load immediately.";
 
 /* Game-specific settings. */
 
 var gameWindowURL = "img/window.png";
 var atlasURL = "img/default_tileset.png";
 var hudsetURL = "img/default_hudset.png";
+
+var turnTime_ms = 100;
 
 var boardOffsetX_px = 32;
 var boardOffsetY_px = 32;

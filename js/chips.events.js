@@ -8,14 +8,14 @@
 function initAllEvents() {
 
     // On-screen buttons
-    $("#buttonUp").on("click", function() { moveChip(dir.NORTH) });
-    $("#buttonLeft").on("click", function() { moveChip(dir.WEST) });
-    $("#buttonDown").on("click", function() { moveChip(dir.SOUTH) });
-    $("#buttonRight").on("click", function() { moveChip(dir.EAST) });
+    $("#buttonUp").on("click", function() { moveChip(chips.util.dir.NORTH) });
+    $("#buttonLeft").on("click", function() { moveChip(chips.util.dir.WEST) });
+    $("#buttonDown").on("click", function() { moveChip(chips.util.dir.SOUTH) });
+    $("#buttonRight").on("click", function() { moveChip(chips.util.dir.EAST) });
 
     // Prevent default behavior (page scrolling) with arrow keys
     $(document).on("keydown", function(e) {
-        $.each(keys, function (k, val) {
+        $.each(chips.vars.keys, function (k, val) {
             if (e.keyCode === val) {
                 e.preventDefault();
             }
@@ -27,8 +27,8 @@ function initAllEvents() {
      *-----------------------------------*/
 
     kd.UP.down( function(e) {
-        if (keylock === 0) {
-            moveChip(dir.NORTH);
+        if (chips.g.keylock === 0) {
+            moveChip(chips.util.dir.NORTH);
         }
         keydownCommon(this);
     });
@@ -42,8 +42,8 @@ function initAllEvents() {
      *-----------------------------------*/
 
     kd.DOWN.down( function(e) {
-        if (keylock === 0) {
-            moveChip(dir.SOUTH);
+        if (chips.g.keylock === 0) {
+            moveChip(chips.util.dir.SOUTH);
         }
         keydownCommon(this);
     });
@@ -57,8 +57,8 @@ function initAllEvents() {
      *-----------------------------------*/
 
     kd.LEFT.down( function() {
-        if (keylock === 0) {
-            moveChip(dir.WEST);
+        if (chips.g.keylock === 0) {
+            moveChip(chips.util.dir.WEST);
         }
         keydownCommon(this);
     });
@@ -72,8 +72,8 @@ function initAllEvents() {
      *-----------------------------------*/
 
     kd.RIGHT.down( function() {
-        if (keylock === 0) {
-            moveChip(dir.EAST);
+        if (chips.g.keylock === 0) {
+            moveChip(chips.util.dir.EAST);
         }
         keydownCommon(this);
     });
@@ -82,29 +82,63 @@ function initAllEvents() {
         keyupCommon(this);
     });
 
-    // Very hacky way to cycle through test levels
-    kd.Z.down( function() {
-        if (keylock === 0){
-            loadNextLevel();
+    /*-----------------------------------
+     * SHIFT+P
+     *-----------------------------------*/
+
+    kd.P.down( function() {
+        if (chips.g.keylock === 0 && kd.SHIFT.isDown()){
+            chips.map.load.prevLevel();
         }
         keydownCommon(this);
     });
 
-    kd.Z.up( function() {
+    kd.P.up( function() {
+        keyupCommon(this);
+    });
+
+    /*-----------------------------------
+     * SHIFT+N
+     *-----------------------------------*/
+
+    kd.N.down( function() {
+        if (chips.g.keylock === 0 && kd.SHIFT.isDown()){
+            chips.map.load.nextLevel();
+        }
+        keydownCommon(this);
+    });
+
+    kd.N.up( function() {
+        keyupCommon(this);
+    });
+
+    /*-----------------------------------
+     * SHIFT+R
+     *-----------------------------------*/
+
+    kd.R.down( function() {
+        if (chips.g.keylock === 0 && kd.SHIFT.isDown()){
+            chips.g.cam.reset();
+            addRequest("redrawAll");
+        }
+        keydownCommon(this);
+    });
+
+    kd.R.up( function() {
         keyupCommon(this);
     });
 
     function keydownCommon(oKey) {
-        keylock++;
-        if (debug) { drawDebug(); }
+        chips.g.keylock++;
+        if (chips.g.debug) { addRequest("updateDebug"); }
     }
 
     function keyupCommon(oKey) {
-        keylock = 0;
-        if (currentActiveMap.chip_facing !== dir.SOUTH) {
+        chips.g.keylock = 0;
+        if (chips.g.cam.chip_facing !== chips.util.dir.SOUTH) {
             addRequest("startChipResetDelay");
         }
-        if (debug) { drawDebug(); }
+        if (chips.g.debug) { addRequest("updateDebug"); }
     }
 }
 
@@ -114,84 +148,37 @@ function initAllEvents() {
  *
  * @param direction - a number corresponding to a direction (use dir enum)
  */
-function moveChip(direction) {
-    var cam = currentActiveMap, d = direction;
-    var nextTile, chipHasMoved = false;
+function moveChip(d) {
+    chips.g.cam.clearChipsTileLayer(chips.draw.LAYER.CHIP);
 
-    // Remove Chip from the map*
-    // *Works only as long as Chip is on the TOP layer. In the future, refactor to allow higher tile layer.
-    cam.level[cam.chip_y][cam.chip_x] %= tiles.CHIP_BASE;
+    var hasUnloadCollision = detectCollision("player", "unload", chips.g.cam.chip_x, chips.g.cam.chip_y, d);
+    var hasLockingCollision = detectCollision("player", "locking", chips.g.cam.chip_x, chips.g.cam.chip_y, d);
+    var hasBarrierCollision = detectCollision("player", "barrier", chips.g.cam.chip_x, chips.g.cam.chip_y, d);
 
-    /* PROCESS FOR CHIP'S MOVEMENT:
-     * 1. Remove Chip from the map (statement above).
-     *    Note: this currently will only work if Chip is the top layer. Can be improved later.
-     * 2. Is Chip at the edge of the map? If not, get the next tile's data.
-     * 3. Does the next tile cause a collision? If not, update Chip's location in the cam.
-     * 4. Re-draw chip to the map using the update or not-updated location.
-     * 5. Update chip_facing in the cam.
-     */
-    switch (d) {
-        case dir.NORTH:
-            if (!edgeCollision(d)) { nextTile = cam.level[cam.chip_y-1][cam.chip_x]; }
-            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) {
-                cam.chip_y--;
-                chipHasMoved = true;
-            }
-            cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_NORTH;
-            cam.chip_facing = dir.NORTH;
-            break;
-        case dir.WEST:
-            if (!edgeCollision(d)) { nextTile = cam.level[cam.chip_y][cam.chip_x-1]; }
-            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) {
-                cam.chip_x--;
-                chipHasMoved = true;
-            }
-            cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_WEST;
-            cam.chip_facing = dir.WEST;
-            break;
-        case dir.SOUTH:
-            if (!edgeCollision(d)) { nextTile = cam.level[cam.chip_y+1][cam.chip_x]; }
-            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) {
-                cam.chip_y++;
-                chipHasMoved = true;
-            }
-            cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_SOUTH;
-            cam.chip_facing = dir.SOUTH;
-            break;
-        case dir.EAST:
-            if (!edgeCollision(d)) { nextTile = cam.level[cam.chip_y][cam.chip_x+1]; }
-            if (typeof nextTile !== "undefined" && !barrierCollision(cam.chip_x, cam.chip_y, d)) {
-                cam.chip_x++;
-                chipHasMoved = true;
-            }
-            cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_EAST;
-            cam.chip_facing = dir.EAST;
-            break;
-        default:
-            cam.level[cam.chip_y][cam.chip_x] += tiles.CHIP_SOUTH;
-            break;
-    }
-    if (chipHasMoved) {
-        interactiveCollision(); // For all events on the tile that Chip has moved onto
+    if (!hasLockingCollision && !hasBarrierCollision) {
+        chips.g.cam.chip_x += chips.util.dir.mod(d)[0];
+        chips.g.cam.chip_y += chips.util.dir.mod(d)[1];
+        chips.g.cam.setChipsFacing(d);
+        detectCollision("player", "interactive", chips.g.cam.chip_x, chips.g.cam.chip_y, d);
+    } else {
+        chips.g.cam.setChipsFacing(d); // this actually places Chip back onto the board
     }
 
-    currentVisibleMap.update();
-    addRequest("updateMap");
-
+    chips.g.cam.view.update();
 }
 
 function killChip(msg) {
     if (!msg) { msg = "Oh dear, you are dead!" }
-    addRequest("setGameMessage",msg); // TODO: Enhance
-    currentActiveMap.reset();
+    addRequest("setGameMessage", [msg]); // TODO: Enhance
+    chips.g.cam.reset();
     addRequest("redrawAll");
 }
 
 function winChip() {
     // TODO: in lieu of a dialog box...
-    addRequest("setGameMessage", "<span style='color:red'>Hooray, you completed Level " + currentActiveMap.levelNum +
-        " with a time of " + currentActiveMap.time + " seconds!</span>");
-    loadNextLevel();
+    addRequest("setGameMessage", ["<span style='color:red'>Hooray, you completed Level " + chips.g.cam.levelNum +
+        " with a time of " + chips.g.cam.time + " seconds!</span>"]);
+    chips.map.load.nextLevel();
 }
 
 function dialog(msg) {

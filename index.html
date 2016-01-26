@@ -9,18 +9,20 @@
         <script src="js/chips.js"></script>
         <script src="js/chips.settings.js"></script>
         <script src="js/chips.global.js"></script>
+        <script src="js/chips.vars.js"></script>
+        <script src="js/chips.util.js"></script>
+        <script src="js/chips.data.js"></script>
+        <script src="js/chips.assets.js"></script>
 
 		<script src="js/chips.draw.js"></script>
         <script src="js/chips.events.js"></script>
-        <script src="js/chips.load.js"></script>
+        <script src="js/chips.map.js"></script>
         <script src="js/chips.collision.js"></script>
-        <script src="js/chips.tiles.js"></script>
-        <script src="js/chips.enemies.js"></script>
 
 		<script src="js/chips.testData.js"></script>
         <script>
             function toggleAtlases() {
-                var divs = $("[id^='refDiv']");
+                var divs = $("[id^='refContainer']");
                 for (var i = 0; i < divs.length; i++) {
                     if (divs[i].style.display === "none") {
                         divs[i].style.display = "block";
@@ -34,7 +36,14 @@
 	<body>
 		<div id="canvasDiv">
 			<canvas id="gameCanvas">Canvas not supported. Please update your browser!</canvas>
+            <div class="linkbar">
+                "Chip's Tribute" -
+                <a href="https://github.com/dolphinspired/CHIPS">GitHub</a> -
+                <a href="http://chipschallenge.wikia.com/wiki/Chip%27s_Challenge_Wiki">Chip's Challenge Wiki</a> -
+                Back to <a href="http://www.runeberry.com/">Runeberry Software</a>
+            </div>
 		</div>
+
         <div id="gameControls" style="text-align: center;">
             &nbsp;<button id="buttonUp" class="totesTouchscreenCompatible">&#9650;</button>
             <br/>
@@ -48,6 +57,15 @@
             <button onclick="toggleAtlases();">Toggle Atlas View</button>
             &nbsp;
             <button onclick="addRequest('redrawAll');">Redraw Screen</button>
+        </div>
+        <div id="gameInstructions">
+            <h4>Controls:</h4>
+            <ul style="list-style-type: none">
+                <li>Arrow keys (or buttons above) - Move</li>
+                <li>SHIFT+N - Next level</li>
+                <li>SHIFT+P - Previous level</li>
+                <li>SHIFT+R - Restart level</li>
+            </ul>
         </div>
 	</body>
 </html>
