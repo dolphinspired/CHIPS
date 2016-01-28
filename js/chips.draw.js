@@ -12,8 +12,8 @@ chips.draw = {
     LAYER_OFFSETS_X : [0,256,0,256],
     LAYER_OFFSETS_Y : [0,0,256,256],
     NUM_LAYERS : 4,
-    HALFBOARD_X : Math.floor(boardWidth_tiles / 2), // Half the visible board, rounded down
-    HALFBOARD_Y : Math.floor(boardHeight_tiles / 2),
+    HALFBOARD_X : Math.floor(chips.vars.boardWidth_tiles / 2), // Half the visible board, rounded down
+    HALFBOARD_Y : Math.floor(chips.vars.boardHeight_tiles / 2),
 
     LAYER : {
         FLOOR : 0,
@@ -39,8 +39,8 @@ chips.draw = {
      * @param tile
      * @param xDest_tile - destination at which to draw the tile [x] (in tiles)
      * @param yDest_tile - destination at which to draw the tile [y] (in tiles)
-     * @param offsetX_px - offset of drawing destination, in px (default: boardOffsetX_px)
-     * @param offsetY_px - offset of drawing destination, in px (default: boardOffsetY_px)
+     * @param offsetX_px - offset of drawing destination, in px (default: chips.vars.boardOffsetX_px)
+     * @param offsetY_px - offset of drawing destination, in px (default: chips.vars.boardOffsetY_px)
      * @returns {boolean} - true if draw was successful, false otherwise
      */
 
@@ -51,8 +51,8 @@ chips.draw = {
         }
 
         // If no offset is supplied, it's assumed you're drawing straight to the game board
-        var xOffset = (offsetX_px ? offsetX_px : boardOffsetX_px);
-        var yOffset = (offsetY_px ? offsetY_px : boardOffsetY_px);
+        var xOffset = (offsetX_px ? offsetX_px : chips.vars.boardOffsetX_px);
+        var yOffset = (offsetY_px ? offsetY_px : chips.vars.boardOffsetY_px);
 
         var t = chips.draw.TILE_SIZE,
             p = chips.draw.LAYER_SIZE_PX;
@@ -70,14 +70,8 @@ chips.draw = {
             if (curLayer > 0 && xSource_px % p === 0 && ySource_px % p === 0) {
                 // If tile is not defined in this layer (above floor layer), skip drawing
             } else if (curLayer > 0) {
-
-                if (curLayer === chips.draw.LAYER.ITEM && this.obscuresItems(chips.util.getLayer(tile, chips.draw.LAYER.FLOOR))) {
-                    // Do nothing
-                    continue;
-                } else {
-                    // Layers > 1 need to blend into the lower layers
-                    tileImageData = chips.draw.util.blendLayers(tileImageData, chips.assets.canvi.tContext.getImageData(xSource_px,ySource_px,t,t));
-                }
+                // Layers > 1 need to blend into the lower layers
+                tileImageData = chips.draw.util.blendLayers(tileImageData, chips.assets.canvi.tContext.getImageData(xSource_px,ySource_px,t,t));
             } else {
                 // Layer 1 can skip the blend step
                 try {
@@ -97,11 +91,6 @@ chips.draw = {
             yDest_tile * t + yOffset
         );
 
-        // TODO: Add obscurity tag/value?
-        this.obscuresItems = function(tile) {
-            return (tile === chips.g.tiles.BLOCK || tile === chips.g.tiles.FAKE_WALL_HOLLOW)
-        };
-
         return true;
     },
 
@@ -112,58 +101,60 @@ chips.draw = {
 
     activeMap : function() {
         // Clear out the visible board before redrawing
-        chips.assets.canvi.gContext.clearRect(boardOffsetX_px,boardOffsetY_px,
-            boardOffsetX_px + (boardWidth_tiles - 1) * chips.draw.TILE_SIZE,
-            boardOffsetY_px + (boardHeight_tiles - 1) * chips.draw.TILE_SIZE
+        chips.assets.canvi.gContext.clearRect(chips.vars.boardOffsetX_px,chips.vars.boardOffsetY_px,
+            chips.vars.boardOffsetX_px + (chips.vars.boardWidth_tiles - 1) * chips.draw.TILE_SIZE,
+            chips.vars.boardOffsetY_px + (chips.vars.boardHeight_tiles - 1) * chips.draw.TILE_SIZE
         );
 
         var xSource, ySource, xDest = 0, yDest = 0;
         for (ySource = chips.g.cam.view.top; ySource <= chips.g.cam.view.bottom; ySource++) {
             for (xSource = chips.g.cam.view.left; xSource <= chips.g.cam.view.right; xSource++) {
-                chips.draw.tile(chips.g.cam.level[ySource][xSource], xDest, yDest);
+                chips.draw.tile(chips.g.cam.board[ySource][xSource], xDest, yDest);
                 xDest++;
             }
             xDest = 0;
             yDest++;
         }
 
-        detectCollision("player", "state", chips.g.cam.chip_x, chips.g.cam.chip_y);
+        chips.util.detectCollision("player", "state", chips.g.cam.chip.x, chips.g.cam.chip.y);
     },
 
     debug : function(args) {
-        var debugMessage = "CHIP: " + chips.g.cam.chip_x + ", " + chips.g.cam.chip_y +
+        var ctx = chips.assets.canvi.gContext;
+        var debugMessage = "CHIP: " + chips.g.cam.chip.x + ", " + chips.g.cam.chip.y +
             " / keylock: " + chips.g.keylock;
         var drawX = 6, drawY = chips.assets.canvi.gCanvas.height-6;
 
         // Erase and redraw the background
-        chips.assets.canvi.gContext.clearRect(
+        ctx.clearRect(
             0,
-            boardOffsetY_px + boardHeight_tiles * chips.draw.TILE_SIZE,
+            chips.vars.boardOffsetY_px + chips.vars.boardHeight_tiles * chips.draw.TILE_SIZE,
             chips.assets.canvi.wCanvas.width,
             chips.assets.canvi.wCanvas.height
         );
-        chips.assets.canvi.gContext.putImageData(chips.assets.canvi.wContext.getImageData(
+        ctx.putImageData(chips.assets.canvi.wContext.getImageData(
                 0, // Source top-left x
-                boardOffsetY_px + boardHeight_tiles * chips.draw.TILE_SIZE, // Source top-left y
+                chips.vars.boardOffsetY_px + chips.vars.boardHeight_tiles * chips.draw.TILE_SIZE, // Source top-left y
                 chips.assets.canvi.wCanvas.width, // Source bottom-right x
                 chips.assets.canvi.wCanvas.height), // Source bottom-right y
             0, // Dest top-right x
-            boardOffsetY_px + boardHeight_tiles * chips.draw.TILE_SIZE  // Dest top-right y
+            chips.vars.boardOffsetY_px + chips.vars.boardHeight_tiles * chips.draw.TILE_SIZE  // Dest top-right y
         );
 
         // Draw the debug message
-        chips.assets.canvi.gContext.font = "bold 16px Arial";
-        chips.assets.canvi.gContext.fillStyle = "black";
-        chips.assets.canvi.gContext.fillText( debugMessage, drawX+2, drawY+2); // shadow
-        chips.assets.canvi.gContext.fillText( debugMessage, drawX+1, drawY+1); // shadow
-        chips.assets.canvi.gContext.fillStyle = "yellow";
-        chips.assets.canvi.gContext.fillText( debugMessage, drawX, drawY); // bottom-left
+        ctx.font = "bold 16px Arial";
+        ctx.fillStyle = "black";
+        ctx.textAlign = "start";
+        ctx.fillText( debugMessage, drawX+2, drawY+2); // shadow
+        ctx.fillText( debugMessage, drawX+1, drawY+1); // shadow
+        ctx.fillStyle = "yellow";
+        ctx.fillText( debugMessage, drawX, drawY); // bottom-left
     },
 
     hud : function() {
         chips.draw.levelNumber();
         chips.draw.time();
-        if (chips.util.getLayer(chips.g.cam.level[chips.g.cam.chip_y][chips.g.cam.chip_x], 0) === chips.g.tiles.HINT) {
+        if (chips.util.getLayer(chips.g.cam.board[chips.g.cam.chip.y][chips.g.cam.chip.x], 0) === chips.g.tiles.HINT) {
             chips.draw.hint();
         } else {
             chips.draw.chipsLeft();
@@ -172,33 +163,33 @@ chips.draw = {
     },
 
     levelNumber : function() {
-        var color = (chips.g.cam.levelNum <= hudLevelNumWarningThreshold ? hudColorWarning : hudColorNormal);
-        chips.draw.util.digitImageFromString(chips.g.cam.levelNum, hudLevelNumOffsetX_px, hudLevelNumOffsetY_px, color);
+        var color = (chips.g.cam.number <= chips.vars.hudLevelNumWarningThreshold ? chips.vars.hudColorWarning : chips.vars.hudColorNormal);
+        chips.draw.util.digitImageFromString(chips.g.cam.number, chips.vars.hudLevelNumOffsetX_px, chips.vars.hudLevelNumOffsetY_px, color);
     },
 
     time : function() {
-        var color = (chips.g.cam.time <= hudTimeWarningThreshold ? hudColorWarning : hudColorNormal);
-        chips.draw.util.digitImageFromString(chips.g.cam.time, hudTimeOffsetX_px, hudTimeOffsetY_px, color);
+        var color = (chips.g.cam.timeLeft <= chips.vars.hudTimeWarningThreshold ? chips.vars.hudColorWarning : chips.vars.hudColorNormal);
+        chips.draw.util.digitImageFromString(chips.g.cam.timeLeft, chips.vars.hudTimeOffsetX_px, chips.vars.hudTimeOffsetY_px, color);
     },
 
     chipsLeft : function() {
-        var color = (chips.g.cam.chipsLeft <= hudChipsLeftWarningThreshold ? hudColorWarning : hudColorNormal);
-        chips.draw.util.digitImageFromString(chips.g.cam.chipsLeft, hudChipsLeftOffsetX_px, hudChipsLeftOffsetY_px, color);
+        var color = (chips.g.cam.chipsLeft <= chips.vars.hudChipsLeftWarningThreshold ? chips.vars.hudColorWarning : chips.vars.hudColorNormal);
+        chips.draw.util.digitImageFromString(chips.g.cam.chipsLeft, chips.vars.hudChipsLeftOffsetX_px, chips.vars.hudChipsLeftOffsetY_px, color);
     },
 
     hint : function() {
         // TODO: Inset border
         chips.assets.canvi.gContext.strokeStyle = "white";
-        chips.assets.canvi.gContext.lineWidth = hudHintPadding_px - 1;
+        chips.assets.canvi.gContext.lineWidth = chips.vars.hudHintPadding_px - 1;
         var lw = chips.assets.canvi.gContext.lineWidth;
-        chips.assets.canvi.gContext.strokeRect(hudHintOffsetX_px, hudHintOffsetY_px, hudHintWidth_px, hudHintHeight_px);
+        chips.assets.canvi.gContext.strokeRect(chips.vars.hudHintOffsetX_px, chips.vars.hudHintOffsetY_px, chips.vars.hudHintWidth_px, chips.vars.hudHintHeight_px);
 
         chips.assets.canvi.gContext.fillStyle = "black";
-        chips.assets.canvi.gContext.fillRect(hudHintOffsetX_px+lw/2, hudHintOffsetY_px+lw/2, hudHintWidth_px-lw, hudHintHeight_px-lw);
+        chips.assets.canvi.gContext.fillRect(chips.vars.hudHintOffsetX_px+lw/2, chips.vars.hudHintOffsetY_px+lw/2, chips.vars.hudHintWidth_px-lw, chips.vars.hudHintHeight_px-lw);
 
-        var lines = chips.draw.util.splitForWordWrap(chips.g.cam.hint, hudHintWidth_px-(2*hudHintPadding_px));
+        var lines = chips.draw.util.splitForWordWrap(chips.g.cam.hint, chips.vars.hudHintWidth_px-(2*chips.vars.hudHintPadding_px));
 
-        var fh = 12, spl = 5, h = hudHintHeight_px; // TODO: Hard-coded shit
+        var fh = 12, spl = 5, h = chips.vars.hudHintHeight_px; // TODO: Hard-coded shit
         var both = lines.length * (fh + spl);
         if (both >= h) {
             // We won't be able to wrap the text inside the area
@@ -206,25 +197,26 @@ chips.draw = {
             // about this in a meaningful way
         } else {
             // We determine the y of the first line
-            var ly = hudHintOffsetY_px + 12 + 5; // TODO: Font size + border padding
+            var ly = chips.vars.hudHintOffsetY_px + 12 + 5; // TODO: Font size + border padding
             var lx = 0;
-            chips.assets.canvi.gContext.fillStyle = hudHintColor;
+            chips.assets.canvi.gContext.fillStyle = chips.vars.hudHintColor;
+            chips.assets.canvi.gContext.textAlign = "start";
             for (var j = 0; j < lines.length; ++j, ly+=fh+spl) {
                 // We continue to centralize the lines
-                lx = hudHintOffsetX_px+hudHintWidth_px/2-chips.assets.canvi.gContext.measureText(lines[j]).width/2;
+                lx = chips.vars.hudHintOffsetX_px+chips.vars.hudHintWidth_px/2-chips.assets.canvi.gContext.measureText(lines[j]).width/2;
                 chips.assets.canvi.gContext.fillText(lines[j], lx, ly);
             }
         }
     },
 
     inventory : function() {
-        chips.assets.canvi.gContext.clearRect(inventoryOffsetX_px, inventoryOffsetY_px,
-            inventoryWidth_tiles * chips.draw.TILE_SIZE,
-            inventoryHeight_tiles * chips.draw.TILE_SIZE);
+        chips.assets.canvi.gContext.clearRect(chips.vars.inventoryOffsetX_px, chips.vars.inventoryOffsetY_px,
+            chips.vars.inventoryWidth_tiles * chips.draw.TILE_SIZE,
+            chips.vars.inventoryHeight_tiles * chips.draw.TILE_SIZE);
 
-        for (var y = 0; y < inventoryHeight_tiles; y++) {
-            for (var x = 0; x < inventoryWidth_tiles; x++) {
-                chips.draw.tile(chips.g.tiles.FLOOR, x, y, inventoryOffsetX_px, inventoryOffsetY_px);
+        for (var y = 0; y < chips.vars.inventoryHeight_tiles; y++) {
+            for (var x = 0; x < chips.vars.inventoryWidth_tiles; x++) {
+                chips.draw.tile(chips.g.tiles.FLOOR, x, y, chips.vars.inventoryOffsetX_px, chips.vars.inventoryOffsetY_px);
             }
         }
 
@@ -232,11 +224,23 @@ chips.draw = {
         for (var i in inv) {
             if (!inv.hasOwnProperty(i)) { continue; }
             if (inv[i].quantity > 0) {
-                destX = inv[i].slot % inventoryWidth_tiles;
-                destY = Math.floor(inv[i].slot / inventoryWidth_tiles);
-                chips.draw.tile(chips.g.tiles[i], destX, destY, inventoryOffsetX_px, inventoryOffsetY_px);
+                destX = inv[i].slot % chips.vars.inventoryWidth_tiles;
+                destY = Math.floor(inv[i].slot / chips.vars.inventoryWidth_tiles);
+                chips.draw.tile(chips.g.tiles[i], destX, destY, chips.vars.inventoryOffsetX_px, chips.vars.inventoryOffsetY_px);
             }
         }
+    },
+
+    loadScreen : function(percentLoaded) {
+        var ctx = chips.assets.canvi.gContext;
+
+        ctx.font = "bold 16px Arial";
+        ctx.textAlign = "center";
+        ctx.clearRect(0, 0, chips.vars.gameWindowWidth, chips.vars.gameWindowHeight);
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, chips.vars.gameWindowWidth, chips.vars.gameWindowHeight);
+        ctx.fillStyle = "red";
+        ctx.fillText("Loading - " + Math.floor(percentLoaded) + "%", chips.vars.gameWindowWidth/2, chips.vars.gameWindowHeight/2);
     },
 
     util : {
@@ -267,13 +271,13 @@ chips.draw = {
             if (str === "---") { color = "yellow" } // TODO: silly temporary override thing
 
             var xSource_px = 0,
-                ySource_px = (color === "yellow" ? hudDigitHeight_px + hudDigitSpacingY_px : 0);
+                ySource_px = (color === "yellow" ? chips.vars.hudDigitHeight_px + chips.vars.hudDigitSpacingY_px : 0);
 
             for (var i = 0; i < 3; i++) { // TODO: Will need to expand if drawing longer numbers
                 if (str[i].match(/^[0-9]$/)) { // +1 to skip "blank" character
-                    xSource_px = (parseInt(str[i]) + 1) * (hudDigitWidth_px + hudDigitSpacingX_px)
+                    xSource_px = (parseInt(str[i]) + 1) * (chips.vars.hudDigitWidth_px + chips.vars.hudDigitSpacingX_px)
                 } else if (str[i] === "-") { // TODO: Hard-coded shiz
-                    xSource_px = 11 * (hudDigitWidth_px + hudDigitSpacingX_px);
+                    xSource_px = 11 * (chips.vars.hudDigitWidth_px + chips.vars.hudDigitSpacingX_px);
                 } else { // "blank" character
                     xSource_px = 0;
                 }
@@ -281,19 +285,25 @@ chips.draw = {
                 chips.assets.canvi.gContext.putImageData(chips.assets.canvi.dContext.getImageData(
                         xSource_px,
                         ySource_px,
-                        hudDigitWidth_px,
-                        hudDigitHeight_px
+                        chips.vars.hudDigitWidth_px,
+                        chips.vars.hudDigitHeight_px
                     ),
                     xDest_px,
                     yDest_px
                 );
 
-                xDest_px += hudDigitWidth_px + hudDigitSpacingX_px;
+                xDest_px += chips.vars.hudDigitWidth_px + chips.vars.hudDigitSpacingX_px;
             }
         },
 
         // prepares any 3 char string for display on the digital HUD
         prepareForHud : function(str, negativeString) {
+            if (typeof str == "undefined") {
+                console.error("No string defined for prepareForHud().")
+                if (chips.g.debug) { debugger; }
+                return "---";
+            }
+
             var retStr = str.toString();
 
             if (str < 0 && negativeString) {
@@ -324,7 +334,7 @@ chips.draw = {
 
         splitForWordWrap : function(text, maxWidth_px) {
             // Adapted from andreinc.net
-            chips.assets.canvi.gContext.font = hudHintFont; // TODO: Make to work outside of hint box
+            chips.assets.canvi.gContext.font = chips.vars.hudHintFont; // TODO: Make to work outside of hint box
 
             var words = text.split(' ');
             var new_line = words[0];

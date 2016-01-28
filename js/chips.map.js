@@ -6,125 +6,117 @@ chips.map = {
 
     load : {
         level : function(num) {
-            return chips.map.load.testLevel(num); // TODO: temporary
+            chips.g.cam = new chips.map.ActiveMap(num);
+            chips.g.cam.view.update();
+            return true;
         },
         nextLevel : function() {
-            if (chips.g.cam.levelNum < numTestLevels) {
-                addRequest("loadLevel", [parseInt(chips.g.cam.levelNum) + 1]);
+            if (chips.g.cam.number < chips.g.cls.meta.size) {
+                chips.vars.requests.add("loadLevel", [chips.g.cam.number + 1]);
             } else {
-                addRequest("loadLevel", [0]);
+                chips.vars.requests.add("loadLevel", [1]); // TODO: Show a victory screen
             }
         },
         prevLevel : function() {
-            if (chips.g.cam.levelNum > 0) {
-                addRequest("loadLevel", [parseInt(chips.g.cam.levelNum) - 1]);
+            if (chips.g.cam.number > 1) {
+                chips.vars.requests.add("loadLevel", [chips.g.cam.number - 1]);
             } else {
-                addRequest("loadLevel", [numTestLevels]);
+                chips.vars.requests.add("loadLevel", [chips.g.cls.meta.size]);
+                // Makes the assumption that numbers in levelset are ordered sequentially
             }
-        },
-        testLevel : function(num) { // temporary
-            oTestLevel = chips.testLevels["levelTest" + num];
-            chips.g.cam = new chips.map.ActiveMap(oTestLevel, num);
-            chips.g.cam.view.update();
         }
     },
 
-    ActiveMap : function(aLevel, levelNum) {
-        this.number = (levelNum ? levelNum : -1); // Stage number, if defined
-        this.inventory = new InventoryMap(chips.data.tiles);
+    ActiveMap : function(num) {
+        if (typeof num == "undefined") {
+            console.error("No levelNum assigned to ActiveMap");
+            if (chips.g.debug) { debugger; }
+            return;
+        }
 
-        function InventoryMap(tData) {
-            for (var i in tData) {
-                if (!tData.hasOwnProperty(i)) { continue; }
-                if (tData[i].type === "item" && tData[i].inventory && tData[i].inventory.slot >= 0) {
-                    this[i] = {
-                        "quantity": 0,
-                        "slot": tData[i].inventory.slot
+        var level = chips.g.cls[num];
+
+        this.number = parseInt(num);
+        this.name = level.name;
+        this.password = level.password;
+        this.timeLeft = parseInt(level.time);
+        this.chipsLeft = parseInt(level.chips);
+        this.hint = level.hint;
+
+        this.width = level.width;
+        this.height = Math.floor(level.board.length / level.width);
+        this.board = [];
+
+        this.chip = {
+            x : -1,
+            y : -1,
+            facing : chips.util.dir.SOUTH
+        };
+
+        for (var y = 0; y < this.height; y++) {
+            if (typeof this.board[y] == "undefined") { this.board[y] = [] }
+            for (var x = 0; x < this.width; x++) {
+                this.board[y][x] = level.board[(y * this.width) + x]; // Transform to 2D array
+                // If Chip is found in the board and hasn't been found yet, set his location
+                if (this.chip.x === -1) {
+                    if (this.board[y][x] >= chips.g.tiles.CHIP_BASE) {
+                        this.chip.x = x;
+                        this.chip.y = y;
                     }
                 }
             }
         }
 
-        var x, y;
+        this.inventory = new chips.util.InventoryMap(chips.data.tiles);
+        this.elapsedTime = new chips.util.LevelTimer();
 
-        // TODO: freeze original x,y so they cannot be altered?
-        this.chip_x_original = -1;
-        this.chip_y_original = -1;
-
-        // Then, grab (and validate) the actual values to be used for calculations
-        this.levelNum = (parseInt(aLevel[0][2]) === "NaN" ? -1 : parseInt(aLevel[0][2]));
-        this.time = (parseInt(aLevel[0][3]) === "NaN" ? -1 : parseInt(aLevel[0][3]));
-        this.chipsLeft = (parseInt(aLevel[0][4]) === "NaN" ? -1 : parseInt(aLevel[0][4]));
-
-        // Disallow 0 as a base time
-        if (this.time === 0) {
-            this.time = -1;
-        }
-
-        // Determines when enemies move, when anything slides, and when Chip moves in classic mode
         this.turn = 0;
 
+        // VALIDATION
+
+        // Chip's coords must be within the bounds of the board, else set to x = 0 or y = 0
+        this.chip.x = (this.chip.x < 0 || this.chip.x > this.width - 1 ? 0 : this.chip.x);
+        this.chip.y = (this.chip.y < 0 || this.chip.y > this.height - 1 ? 0 : this.chip.y);
+
+        this.password = (this.password.length > 4 ? this.password.substr(0,4) : this.password); // Max 4 chars
+        this.timeLeft = (this.timeLeft < 1 ? -1 : this.timeLeft); // Min 1 second, else unlimited time
+        this.chipsLeft = (this.chipsLeft < 0 ? 0 : this.chipsLeft); // Min 0 chips left
+
+
+
+
+
+        // TODO: Below is still pending rewrite
+
         this.updateTurn = function() {
-            if (this.elapsedTime.elapsed_ms - (this.turn * turnTime_ms) > this.turn) {
+            if (this.elapsedTime.elapsed_ms - (this.turn * chips.g.turnTime) > this.turn) {
                 this.turn++;
             }
         };
 
-        // Start a new timer to track the time elapsed while in this level
-        this.elapsedTime = new InitializeLevelTimer();
-
-        // Now for the remaining non-numeric info
-        this.name = aLevel[0][0];
-        this.password = aLevel[0][1];
-        this.hint = aLevel[0][5];
-        this.tilePairings = null; // TODO: assignTilePairingsFromString(aLevel[0][6]); // Doesn't do anything yet
-
-        // THE MAP
-        // Deep copy the 2d array into the activeMap object
-        // Set activeMap properties while you're at it
-        this.level = [[]];
-        for (y = 1; y < aLevel.length; y++) {
-            if (!this.level[y-1]) { this.level[y-1] = [] }
-            for (x = 0; x < aLevel[y].length; x++) {
-                this.level[y-1][x] = aLevel[y][x]; // inserted at y-1 to account for header row
-                // If Chip is found in aLevel and hasn't been found yet, set his location
-                if (this.chip_x_original === -1) {
-                    if (this.level[y-1][x] >= chips.g.tiles.CHIP_BASE) {
-                        this.chip_x_original = x;
-                        this.chip_y_original = y-1;
-                    }
-                }
-            }
-        }
-
-        this.chip_x = (this.chip_x_original > -1 ? this.chip_x_original : 0);
-        this.chip_y = (this.chip_y_original > -1 ? this.chip_y_original : 0);
-        this.height = this.level.length;
-        this.width = this.level[0].length;
-
         // Get just the Chip layer of the tile, then find out what direction he's facing
-        switch (Math.floor(this.level[this.chip_x][this.chip_y] / chips.g.tiles.CHIP_BASE) * chips.g.tiles.CHIP_BASE) {
+        switch (Math.floor(this.board[this.chip.y][this.chip.x] / chips.g.tiles.CHIP_BASE) * chips.g.tiles.CHIP_BASE) {
             case chips.g.tiles.CHIP_NORTH:
-                this.chip_facing = chips.util.dir.NORTH;
+                this.chip.facing = chips.util.dir.NORTH;
                 break;
             case chips.g.tiles.CHIP_SOUTH:
-                this.chip_facing = chips.util.dir.SOUTH;
+                this.chip.facing = chips.util.dir.SOUTH;
                 break;
             case chips.g.tiles.CHIP_EAST:
-                this.chip_facing = chips.util.dir.EAST;
+                this.chip.facing = chips.util.dir.EAST;
                 break;
             case chips.g.tiles.CHIP_WEST:
-                this.chip_facing = chips.util.dir.WEST;
+                this.chip.facing = chips.util.dir.WEST;
                 break;
             default:
-                this.chip_facing = chips.util.dir.SOUTH;
+                this.chip.facing = chips.util.dir.SOUTH;
         }
 
-        addRequest("redrawAll");
+        chips.vars.requests.add("redrawAll");
 
         this.addItem = function(item) {
             this.inventory[item].quantity++;
-            addRequest("updateInventory");
+            chips.vars.requests.add("updateInventory");
         };
 
         this.removeItem = function(item, removeAll) {
@@ -133,7 +125,7 @@ chips.map = {
             } else if (this.inventory[item].quantity > 0) {
                 this.inventory[item].quantity--;
             }
-            addRequest("updateInventory");
+            chips.vars.requests.add("updateInventory");
         };
 
         this.reset = function() {
@@ -142,15 +134,15 @@ chips.map = {
 
         // This also controls the update of turns
         this.updateTime = function(newTime) {
-            if (this.time > 0) {
-                this.time = newTime;
+            if (this.timeLeft > 0) {
+                this.timeLeft = newTime;
             }
 
-            if (this.time === 0) { // both or either can fire in one call
-                killChip("Out of time!");
+            if (this.timeLeft === 0) { // both or either can fire in one call
+                chips.events.chip.kill("Out of time!");
             }
 
-            addRequest("updateTime");
+            chips.vars.requests.add("updateTime");
 
             if (this.elapsedTime) {
 
@@ -159,47 +151,15 @@ chips.map = {
 
         this.decrementTime = function(amount) {
             var amt = (amount ? amount : 1);
-            this.updateTime(this.time - amt);
+            this.updateTime(this.timeLeft - amt);
         };
 
-        // TODO: the Date.now() approach might not allow for level pausing
-        function InitializeLevelTimer() {
-            this.start = Date.now();
-            this.elapsed_ms = 0;
-            this.elapsed_sec = 0;
 
-            this.paused = 0;
-            this.paused_ms = 0;
-
-            // True if sec was updated, false if not
-            this.tick = function() {
-                if (this.paused) { this.pauseTick(); }
-                this.elapsed_ms = Date.now() - this.start - this.paused_ms;
-                if (Math.floor(this.elapsed_ms / 1000) > this.elapsed_sec) {
-                    this.elapsed_sec = Math.floor(this.elapsed_ms / 1000);
-                    return true;
-                }
-                return false;
-            };
-
-            this.pause = function() {
-                if (this.paused) {
-                    this.paused = 0;
-                } else {
-                    this.paused = Date.now();
-                }
-            };
-
-            this.pauseTick = function() {
-                this.paused_ms += Date.now() - this.paused;
-                this.paused = Date.now();
-            }
-        }
 
         this.updateChipsLeft = function(newChipsLeft) {
             if (newChipsLeft >= 0) {
                 this.chipsLeft = newChipsLeft;
-                addRequest("updateChipsLeft");
+                chips.vars.requests.add("updateChipsLeft");
             }
         };
 
@@ -211,8 +171,8 @@ chips.map = {
 
         this.toggleFloors = function() {
             var thisFloor;
-            for (var y = 0; y < this.level.length; y++) {
-                for (var x = 0; x < this.level[y].length; x++) {
+            for (var y = 0; y < this.board.length; y++) {
+                for (var x = 0; x < this.board[y].length; x++) {
                     thisFloor = this.getTileLayer(x, y, chips.draw.LAYER.FLOOR);
                     if (thisFloor === chips.g.tiles.TOGGLE_CLOSED) {
                         this.setTileLayer(x, y, chips.draw.LAYER.FLOOR, chips.g.tiles.TOGGLE_OPEN);
@@ -232,8 +192,8 @@ chips.map = {
         // If not found, return false
         this.findTiles = function(tile) {
             var retCoords = [];
-            for (var y = 0; y < this.level.length; y++) {
-                for (var x = 0; x < this.level[y].length; x++) {
+            for (var y = 0; y < this.board.length; y++) {
+                for (var x = 0; x < this.board[y].length; x++) {
                     if (this.getTile(x, y) === tile) {
                         retCoords[retCoords.length] = [x,y];
                     }
@@ -244,8 +204,8 @@ chips.map = {
 
         this.findTilesByLayer = function(tile, layer) {
             var retCoords = [];
-            for (var y = 0; y < this.level.length; y++) {
-                for (var x = 0; x < this.level[y].length; x++) {
+            for (var y = 0; y < this.board.length; y++) {
+                for (var x = 0; x < this.board[y].length; x++) {
                     if (this.getTileLayer(x, y, layer) === tile) {
                         retCoords[retCoords.length] = [x,y];
                     }
@@ -255,12 +215,12 @@ chips.map = {
         };
 
         this.getTile = function (x, y) {
-            return this.level[y][x];
+            return this.board[y][x];
         };
 
         this.setTile = function (x, y, tile) {
-            addRequest("updateMap");
-            this.level[y][x] = tile;
+            chips.vars.requests.add("updateMap");
+            this.board[y][x] = tile;
             return this.getTile(x, y);
         };
 
@@ -400,63 +360,63 @@ chips.map = {
         };
 
         this.getChipsTile = function() {
-            return this.getTile(this.chip_x, this.chip_y);
+            return this.getTile(this.chip.x, this.chip.y);
         };
 
         this.setChipsTile = function(tile) {
-            return this.setTile(this.chip_x, this.chip_y, tile);
+            return this.setTile(this.chip.x, this.chip.y, tile);
         };
 
         this.getChipsTileLayer = function(layer) {
-            return this.getTileLayer(this.chip_x, this.chip_y, layer);
+            return this.getTileLayer(this.chip.x, this.chip.y, layer);
         };
 
         this.setChipsTileLayer = function(layer, tile) {
-            return this.setTileLayer(this.chip_x, this.chip_y, layer, tile);
+            return this.setTileLayer(this.chip.x, this.chip.y, layer, tile);
         };
 
         this.clearChipsTileLayer = function(layer) {
-            return this.clearTileLayer(this.chip_x, this.chip_y, layer);
+            return this.clearTileLayer(this.chip.x, this.chip.y, layer);
         };
 
         this.getChipsRelativeTile = function(direction, distance) {
-            return this.getRelativeTile(this.chip_x, this.chip_y, direction, distance);
+            return this.getRelativeTile(this.chip.x, this.chip.y, direction, distance);
         };
 
         this.setChipsRelativeTile = function(direction, distance, tile) {
-            return this.setRelativeTile(this.chip_x, this.chip_y, direction, distance, tile);
+            return this.setRelativeTile(this.chip.x, this.chip.y, direction, distance, tile);
         };
 
         this.getChipsRelativeTileLayer = function(direction, distance, layer) {
-            return this.getRelativeTileLayer(this.chip_x, this.chip_y, direction, distance, layer);
+            return this.getRelativeTileLayer(this.chip.x, this.chip.y, direction, distance, layer);
         };
 
         this.setChipsRelativeTileLayer = function(direction, distance, layer, tile) {
-            return this.setRelativeTileLayer(this.chip_x, this.chip_y, direction, distance, layer, tile);
+            return this.setRelativeTileLayer(this.chip.x, this.chip.y, direction, distance, layer, tile);
         };
 
         this.clearChipsRelativeTileLayer = function(direction, distance, layer) {
-            return this.clearRelativeTileLayer(this.chip_x, this.chip_y, direction, distance, layer);
+            return this.clearRelativeTileLayer(this.chip.x, this.chip.y, direction, distance, layer);
         };
 
         this.getChipsNextTile = function(direction) {
-            return this.getNextTile(this.chip_x, this.chip_y, direction);
+            return this.getNextTile(this.chip.x, this.chip.y, direction);
         };
 
         this.setChipsNextTile = function(direction, tile) {
-            return this.setNextTile(this.chip_x, this.chip_y, direction, tile);
+            return this.setNextTile(this.chip.x, this.chip.y, direction, tile);
         };
 
         this.getChipsNextTileLayer = function(direction, layer) {
-            return this.getNextTileLayer(this.chip_x, this.chip_y, direction, layer);
+            return this.getNextTileLayer(this.chip.x, this.chip.y, direction, layer);
         };
 
         this.setChipsNextTileLayer = function(direction, layer, tile) {
-            return this.setNextTileLayer(this.chip_x, this.chip_y, direction, layer, tile);
+            return this.setNextTileLayer(this.chip.x, this.chip.y, direction, layer, tile);
         };
 
         this.clearChipsNextTileLayer = function(direction, layer) {
-            return this.clearNextTileLayer(this.chip_x, this.chip_y, direction, layer);
+            return this.clearNextTileLayer(this.chip.x, this.chip.y, direction, layer);
         };
 
         this.setEnemyFacing = function(x, y, d) {
@@ -467,7 +427,7 @@ chips.map = {
             var dirName = chips.util.getKeyByValue(chips.util.dir, d);
             var facedTile = chips.g.tiles["CHIP_" + dirName.toUpperCase()];
             this.setChipsTileLayer(chips.draw.LAYER.CHIP, facedTile);
-            this.chip_facing = d;
+            this.chip.facing = d;
         };
 
         this.view = {
@@ -478,25 +438,25 @@ chips.map = {
             update : function() {
                 // Draw all tiles up to half a board away from Chip (as in, put Chip in the center)
                 // These vars are zero-based tile coords
-                this.left = chips.g.cam.chip_x - chips.draw.HALFBOARD_X;
-                this.top = chips.g.cam.chip_y - chips.draw.HALFBOARD_Y;
-                this.right = chips.g.cam.chip_x + chips.draw.HALFBOARD_X;
-                this.bottom = chips.g.cam.chip_y + chips.draw.HALFBOARD_Y;
+                this.left = chips.g.cam.chip.x - chips.draw.HALFBOARD_X;
+                this.top = chips.g.cam.chip.y - chips.draw.HALFBOARD_Y;
+                this.right = chips.g.cam.chip.x + chips.draw.HALFBOARD_X;
+                this.bottom = chips.g.cam.chip.y + chips.draw.HALFBOARD_Y;
 
                 // These rules will correct the drawing area if the "camera" is not centered on Chip
                 // Must not exceed the edge of the currentActiveMap
                 // Must not exceed the edge of the boardWidth
                 if (this.left < 0) {
                     this.left = 0;
-                    this.right = boardWidth_tiles - 1;
+                    this.right = chips.vars.boardWidth_tiles - 1;
                 } if (this.top < 0) {
                     this.top = 0;
-                    this.bottom = boardHeight_tiles - 1;
+                    this.bottom = chips.vars.boardHeight_tiles - 1;
                 } if (this.right > chips.g.cam.width - 1) {
-                    this.left = chips.g.cam.width - boardWidth_tiles;
+                    this.left = chips.g.cam.width - chips.vars.boardWidth_tiles;
                     this.right = chips.g.cam.width - 1;
                 } if (this.bottom > chips.g.cam.height - 1) {
-                    this.top = chips.g.cam.height - boardHeight_tiles;
+                    this.top = chips.g.cam.height - chips.vars.boardHeight_tiles;
                     this.bottom = chips.g.cam.height - 1;
                 }
             }

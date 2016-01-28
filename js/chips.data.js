@@ -24,12 +24,15 @@ chips.data = {
                 "player" : {
                     "barrier" : function(x, y, d) {
                         chips.g.cam.setChipsNextTile(d, chips.g.tiles.FLOOR);
-                        return detectCollision("player", "barrier", x, y, d);
+                        return chips.util.detectCollision("player", "barrier", x, y, d);
                     }
                 },
                 "enemy" : {
                     "barrier" : function(x, y, d) { return true; }
                 }
+            },
+            "properties" : {
+                "obscuresItems" : true
             }
         },
         FAKE_WALL_SOLID : {
@@ -39,7 +42,7 @@ chips.data = {
                 "player" : {
                     "barrier" : function(x, y, d) {
                         chips.g.cam.setChipsNextTile(d, chips.g.tiles.WALL);
-                        return detectCollision("player", "barrier", x, y, d);
+                        return chips.util.detectCollision("player", "barrier", x, y, d);
                     }
                 },
                 "enemy" : {
@@ -88,7 +91,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "state" : function() {
-                        winChip();
+                        chips.events.chip.win();
                         return true;
                     }
                 },
@@ -262,7 +265,7 @@ chips.data = {
                     },
                     "state" : function() {
                         if (chips.g.cam.inventory["FLIPPER"].quantity === 0) {
-                            killChip("Chip can't swim without flippers!");
+                            chips.events.chip.kill("Chip can't swim without flippers!");
                             return true;
                         }
                         return false;
@@ -316,7 +319,7 @@ chips.data = {
                     },
                     "state" : function() {
                         if (chips.g.cam.inventory["BOOT"].quantity === 0) {
-                            killChip("Chip can't walk on fire without boots!");
+                            chips.events.chip.kill("Chip can't walk on fire without boots!");
                             return true;
                         }
                         return false;
@@ -371,7 +374,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "state" : function() {
-                        killChip("Oh dear, you are dead!");
+                        chips.events.chip.kill("Oh dear, you are dead!");
                     }
                 },
                 "enemy" : {
@@ -393,12 +396,12 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "unload" : function(x, y, d) {
-                        addRequest("toggleHint", [0]);
-                        addRequest("redrawAll"); // Not sure why, but this is necessary
+                        chips.vars.requests.add("toggleHint", [0]);
+                        chips.vars.requests.add("redrawAll"); // Not sure why, but this is necessary
                         return true;
                     },
                     "interactive" : function(x, y, d) {
-                        addRequest("toggleHint", [1]);
+                        chips.vars.requests.add("toggleHint", [1]);
                         return true;
                     }
                 }
@@ -432,11 +435,11 @@ chips.data = {
 
                         for (var i = 0; i < teleports.length; i++) {
                             // If this teleport is the tile that Chip is currently on
-                            if (teleports[i][0] === chips.g.cam.chip_x && teleports[i][1] === chips.g.cam.chip_y) {
+                            if (teleports[i][0] === chips.g.cam.chip.x && teleports[i][1] === chips.g.cam.chip.y) {
                                 if (!destX || !destY) continue; // Destination not yet set (first iteration), keep trying
                                 else break;
                             } else {
-                                if (!detectCollision("player", "barrier", teleports[i][0], teleports[i][1], d)) {
+                                if (!chips.util.detectCollision("player", "barrier", teleports[i][0], teleports[i][1], d)) {
                                     destX = teleports[i][0];
                                     destY = teleports[i][1];
                                 }
@@ -445,9 +448,9 @@ chips.data = {
                         // TODO: this needs to be treated like a slide
                         if (destX && destY) {
                             chips.g.cam.clearChipsTileLayer(chips.draw.LAYER.CHIP);
-                            chips.g.cam.chip_x = destX;
-                            chips.g.cam.chip_y = destY;
-                            moveChip(d);
+                            chips.g.cam.chip.x = destX;
+                            chips.g.cam.chip.y = destY;
+                            chips.events.chip.move(d);
                         }
                         return true;
                     }
@@ -459,11 +462,11 @@ chips.data = {
 
                         for (var i = 0; i < teleports.length; i++) {
                             // If this teleport is the tile that Chip is currently on
-                            if (teleports[i][0] === chips.g.cam.chip_x && teleports[i][1] === chips.g.cam.chip_y) {
+                            if (teleports[i][0] === chips.g.cam.chip.x && teleports[i][1] === chips.g.cam.chip.y) {
                                 if (!destX || !destY) continue; // Destination not yet set (first iteration), keep trying
                                 else break;
                             } else {
-                                if (!detectCollision("player", "barrier", teleports[i][0], teleports[i][1], d)) {
+                                if (!chips.util.detectCollision("player", "barrier", teleports[i][0], teleports[i][1], d)) {
                                     destX = teleports[i][0];
                                     destY = teleports[i][1];
                                 }
@@ -525,7 +528,7 @@ chips.data = {
                 "player" : {
                     "barrier" : function(x, y, d) {
                         chips.g.cam.setNextTileLayer(x, y, d, chips.draw.LAYER.FLOOR, chips.g.tiles.WALL);
-                        return detectCollision("player", "barrier", x, y, d);
+                        return chips.util.detectCollision("player", "barrier", x, y, d);
                     }
                 },
                 "enemy" : {
@@ -787,7 +790,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "state" : function(x, y, d) {
-                        killChip();
+                        chips.events.chip.kill();
                         return true;
                     }
                 },
@@ -812,7 +815,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "state" : function(x, y, d) {
-                        killChip();
+                        chips.events.chip.kill();
                         return true;
                     }
                 },
@@ -838,7 +841,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "state" : function(x, y, d) {
-                        killChip();
+                        chips.events.chip.kill();
                         return true;
                     }
                 },
@@ -864,7 +867,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "state" : function(x, y, d) {
-                        killChip();
+                        chips.events.chip.kill();
                         return true;
                     }
                 },
@@ -896,7 +899,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "state" : function(x, y, d) {
-                        killChip();
+                        chips.events.chip.kill();
                         return true;
                     }
                 },
@@ -922,7 +925,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "state" : function(x, y, d) {
-                        killChip();
+                        chips.events.chip.kill();
                         return true;
                     }
                 },
@@ -948,7 +951,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "state" : function(x, y, d) {
-                        killChip();
+                        chips.events.chip.kill();
                         return true;
                     }
                 },
@@ -971,6 +974,19 @@ chips.data = {
                 "south" : 420000,
                 "east" : 430000
             },
+            "collision" : {
+                "player" : {
+                    "state" : function(x, y, d) {
+                        chips.events.chip.kill();
+                        return true;
+                    }
+                },
+                "enemy" : {
+                    "barrier" : function(x, y, d) {
+                        return true;
+                    }
+                }
+            },
             "behavior" : function() {
                 // TODO: walks toward Chip
             }
@@ -987,7 +1003,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "state" : function(x, y, d) {
-                        killChip();
+                        chips.events.chip.kill();
                         return true;
                     }
                 },
@@ -1021,15 +1037,15 @@ chips.data = {
                 "player" : {
                     "barrier" : function(x, y, d) {
                         // TODO: collision object to iterate over all types of collision?
-                        var locking = detectCollision("enemy", "locking", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
-                        var barrier = detectCollision("enemy", "barrier", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
-                        var interactive = detectCollision("enemy", "interactive", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
+                        var locking = chips.util.detectCollision("enemy", "locking", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
+                        var barrier = chips.util.detectCollision("enemy", "barrier", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
+                        var interactive = chips.util.detectCollision("enemy", "interactive", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
                         return locking || barrier;
                     },
                     "interactive" : function(x, y, d) {
                         chips.g.cam.clearTileLayer(x, y, chips.draw.LAYER.ENEMY);
                         chips.g.cam.setTileLayer(x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], chips.draw.LAYER.ENEMY, chips.g.tiles.BLOCK_BASE);
-                        detectCollision("enemy", "interactive", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
+                        chips.util.detectCollision("enemy", "interactive", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
                         return true;
                     }
                 },
@@ -1057,7 +1073,7 @@ chips.data = {
             "collision" : {
                 "enemy" : {
                     "interactive" : function(x, y, d) {
-                        killChip();
+                        chips.events.chip.kill();
                     }
                 }
             }
@@ -1075,7 +1091,7 @@ chips.data = {
             "collision" : {
                 "enemy" : {
                     "interactive" : function(x, y, d) {
-                        killChip();
+                        chips.events.chip.kill();
                     }
                 }
             }
@@ -1093,7 +1109,7 @@ chips.data = {
             "collision" : {
                 "enemy" : {
                     "interactive" : function(x, y, d) {
-                        killChip();
+                        chips.events.chip.kill();
                     }
                 }
             }
@@ -1114,7 +1130,47 @@ chips.data = {
             "type" : "player",
             "value" : 70000000
         }
+    },
+
+    levels : {
+        Level : function(name, password, time, chips, hint, links, board) {
+            this.name = name || "Untitled";
+            this.password = password || "";
+            this.timeLeft = time || 0;
+            this.chips = chips || 0;
+            this.hint = hint || "";
+            this.links = links || {};
+            this.board = board || [];
+        },
+
+        Levelset : function(name, dateCreated, author) {
+            this.meta = {
+                name : "",
+                author : "",
+                created : "",
+                modified : "",
+                size : 0
+            };
+        },
+
+        loadLevelset : function(levelsetObj) {
+            if (!levelsetObj) {
+                console.error("Bad arg in addLevelset. Check JSON file.");
+                if (chips.g.debug) { debugger; }
+                return false;
+            }
+
+            chips.data.levels.loaded[levelsetObj.meta.name] = levelsetObj;
+            chips.g.last.levelset = levelsetObj.meta.name;
+            return true;
+        },
+
+        addLevel : function(objLevelset, objLevel) {
+            objLevelset[++objLevelset.meta.size] = objLevel || new chips.data.levels.Level();
+        },
+
+        loaded : {
+
+        }
     }
-
-
 };

@@ -17,6 +17,20 @@ div {
 	border: outset 5px;
 }
 
+#controls {
+    margin: 0 auto;
+    text-align: center;
+    width: auto;
+    padding-bottom: 32px;
+    padding-top: 16px;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+}
+
+#moveControls {
+    text-align: center;
+    padding-left: 32px;
+}
 button.totesTouchscreenCompatible {
     font-size: 36px;
 }

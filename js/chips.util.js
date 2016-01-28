@@ -101,6 +101,54 @@ chips.util = {
         }
     },
 
+    InventoryMap : function(tData) {
+        for (var i in tData) {
+            if (!tData.hasOwnProperty(i)) { continue; }
+            if (tData[i].type === "item" && tData[i].inventory && tData[i].inventory.slot >= 0) {
+                this[i] = {
+                    "quantity": 0,
+                    "slot": tData[i].inventory.slot
+                }
+            }
+        }
+    },
+
+    // The Date.now() approach might not allow for level pausing...
+    LevelTimer : function() {
+        this.start = Date.now();
+        this.elapsed_ms = 0;
+        this.elapsed_sec = 0;
+
+        this.paused = 0;
+        this.paused_ms = 0;
+
+        // TODO: Rewrite functions using the prototype approach
+
+        // True if sec was updated, false if not
+        this.tick = function() {
+            if (this.paused) { this.pauseTick(); }
+            this.elapsed_ms = Date.now() - this.start - this.paused_ms;
+            if (Math.floor(this.elapsed_ms / 1000) > this.elapsed_sec) {
+                this.elapsed_sec = Math.floor(this.elapsed_ms / 1000);
+                return true;
+            }
+            return false;
+        };
+
+        this.pause = function() {
+            if (this.paused) {
+                this.paused = 0;
+            } else {
+                this.paused = Date.now();
+            }
+        };
+
+        this.pauseTick = function() {
+            this.paused_ms += Date.now() - this.paused;
+            this.paused = Date.now();
+        }
+    },
+
     getKeyByValue : function(obj, value, valueField, returnWholeObject) {
         var r = (returnWholeObject || false);
 
@@ -119,6 +167,56 @@ chips.util = {
                 }
             }
         }
+    },
+
+    edgeCollision : function(moveDir) {
+        if (moveDir === chips.util.dir.WEST && chips.g.cam.chip.x === 0) { return true; }
+        if (moveDir === chips.util.dir.NORTH && chips.g.cam.chip.y === 0) { return true; }
+        if (moveDir === chips.util.dir.EAST && chips.g.cam.chip.x === chips.g.cam.width - 1) { return true; }
+        if (moveDir === chips.util.dir.SOUTH && chips.g.cam.chip.y === chips.g.cam.height - 1) { return true; }
+        return false;
+    },
+
+    detectCollision : function(entity, type, x, y, d) {
+        if (type === "barrier" && this.edgeCollision(d)) { return true; }
+
+        var distance = (type === "barrier" ? 1 : 0); // If type barrier, get next tile, else get this tile
+
+        try {
+            var floorData = chips.data.tiles[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.FLOOR)]];
+            var itemData = chips.data.tiles[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.ITEM)]];
+            var enemyData = chips.data.tiles[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.ENEMY)]];
+
+            var floorCollision, itemCollision, enemyCollision;
+
+            floorCollision = floorData.collision ? (floorData.collision.all || floorData.collision[entity]) : false;
+            itemCollision = itemData.collision ? (itemData.collision.all || itemData.collision[entity]) : false;
+            enemyCollision = enemyData.collision ? (enemyData.collision.all || enemyData.collision[entity]) : false;
+
+            if (floorCollision && typeof floorCollision[type] == "function") {
+                floorCollision = floorCollision[type](x, y, d);
+            } else {
+                floorCollision = false;
+            }
+
+            if (itemCollision && typeof itemCollision[type] == "function") {
+                itemCollision = itemCollision[type](x, y, d);
+            } else {
+                itemCollision = false;
+            }
+
+            if (enemyCollision && typeof enemyCollision[type] == "function") {
+                enemyCollision = enemyCollision[type](x, y, d);
+            } else {
+                enemyCollision = false;
+            }
+        } catch (e) {
+            console.error(e);
+            if (chips.g.debug) { debugger; }
+            return false;
+        }
+
+        return floorCollision || itemCollision || enemyCollision;
     }
 };
 
