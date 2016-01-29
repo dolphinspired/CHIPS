@@ -18,6 +18,8 @@ So in the interest of preserving this iconic piece of 90's history, I want to ma
 
 The code for this game will be entirely written from scratch using as few libraries as possible. I plan to implement a level editor and leaderboards as well - but those will wait until the game is at least feature-complete. After that, I might use the custom engine as a jumping off point to create a brand new game! We'll see how this goes.
 
+Last but not least, this project is being done **entirely for free** and will never cost anyone anything! This is just a learning project for me, and I hope that fans both old and new can enjoy playing it as much as I enjoy making it.
+
 For the time being, additional questions about this project can be addressed to **runeberrysoftware@gmail.com**
 
 ## ![EXIT](https://raw.githubusercontent.com/dolphinspired/CHIPS/master/img/exit.png) Changelog ![EXIT](https://raw.githubusercontent.com/dolphinspired/CHIPS/master/img/exit.png)
