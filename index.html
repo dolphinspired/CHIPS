@@ -50,6 +50,8 @@
                     <button onclick="chips.map.load.level(chips.g.cam.number);">This (restart)</button>
                     &nbsp;
                     <button onclick="chips.map.load.nextLevel();">Next</button>
+                    <br/><br/>
+                    <button onclick="chips.g.cam.elapsedTime.togglePause();">Pause</button>
                 </td>
                 <td id="moveControls">
                     &nbsp;<button id="buttonUp" class="totesTouchscreenCompatible">&#9650;</button>
@@ -62,12 +64,30 @@
         </table>
         <div id="gameInstructions">
             <h4>Controls:</h4>
-            <ul style="list-style-type: none">
-                <li>Arrow keys (or buttons above) - Move</li>
-                <li>SHIFT+N - Next level</li>
-                <li>SHIFT+P - Previous level</li>
-                <li>SHIFT+R - Restart level</li>
-            </ul>
+            <table>
+                <tbody>
+                    <tr>
+                        <td>Arrow keys</td>
+                        <td>Move</td>
+                    </tr>
+                    <tr>
+                        <td>SHIFT+N</td>
+                        <td>Next level</td>
+                    </tr>
+                    <tr>
+                        <td>SHIFT+P</td>
+                        <td>Previous level</td>
+                    </tr>
+                    <tr>
+                        <td>SHIFT+R</td>
+                        <td>Restart level</td>
+                    </tr>
+                    <tr>
+                        <td>SHIFT+C</td>
+                        <td>Pause</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
         <div>
             <button onclick="toggleAtlases();">Toggle Atlas View</button>

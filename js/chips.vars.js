@@ -6,7 +6,9 @@ chips.vars = {
     gameWindowHeight : 352,
     gameWindowWidth : 512,
 
-    fps : 30,
+    fps : 60,
+
+    pauseOnLoseFocus : true,
 
     defaultGameMessage : "Welcome to Chip's Tribute!",
 
@@ -16,6 +18,7 @@ chips.vars = {
     levelsetURL : "levels/",
 
     turnTime_ms : 100,
+    chipsFacingResetDelay : 3, // # of turns before Chip faces south again
 
     boardOffsetX_px : 32,
     boardOffsetY_px : 32,
@@ -146,8 +149,9 @@ chips.vars = {
                 chips.map.load.level(this.args[0]);
                 this.reset();
             });
-            this["startChipResetDelay"] = new this.GameRequest(function() {
-                // TODO: figure out what I meant to do with this
+            this["startChipsFacingResetDelay"] = new this.GameRequest(function() {
+                chips.g.cam.chipsFacingReset = chips.vars.chipsFacingResetDelay;
+                this.reset();
             });
             this["dialog"] = new this.GameRequest(function() {
                 drawDialogBox(requests[i+1]);
@@ -210,6 +214,41 @@ chips.vars = {
             });
             this["initEvents"] = new this.GameRequest(function() {
                 chips.events.init();
+                this.reset();
+            });
+            this["generateEnemyMap"] = new this.GameRequest(function() {
+                chips.g.cam.enemies = {};
+                chips.g.cam.enemies = new chips.util.EnemyMap();
+                chips.g.cam.enemies.sync();
+                this.reset();
+            });
+            this["drawPauseScreen"] = new this.GameRequest(function() {
+                chips.draw.pauseScreen();
+                this.reset();
+            });
+            this["startMovingChip"] = new this.GameRequest(function() {
+                if (!chips.g.cam.elapsedTime.paused) {
+                    if (chips.g.moveStreakStart < 0) { // First move in this streak
+                        chips.events.chip.move(this.args[0]);
+                        chips.g.moveStreakStart = chips.g.cam.turn;
+                        chips.g.lastMoveTurn = chips.g.moveStreakStart;
+                        chips.g.oddStep = chips.g.moveStreakStart % 2; // 0 (false) if even, 1 (true) if odd
+                    } else { // Other moves in this streak
+                        var moveTurnDiff = chips.g.cam.turn - chips.g.lastMoveTurn;
+                        var thisChip = chips.g.tLookup[chips.g.cam.getChipsTileLayer(chips.draw.LAYER.CHIP)];
+                        if (moveTurnDiff >= chips.data.tiles[thisChip].speed) {
+                            chips.events.chip.move(this.args[0]);
+                            chips.g.lastMoveTurn = chips.g.cam.turn;
+                        }
+                    }
+                }
+
+                this.reset();
+            });
+            this["stopMovingChip"] = new this.GameRequest(function() {
+                if (chips.g.keylock === 0) {
+                    chips.g.moveStreakStart = -1; // reset move streak only if no other keys are held down (arrow keys only?)
+                }
                 this.reset();
             });
         }

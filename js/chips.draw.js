@@ -122,7 +122,7 @@ chips.draw = {
     debug : function(args) {
         var ctx = chips.assets.canvi.gContext;
         var debugMessage = "CHIP: " + chips.g.cam.chip.x + ", " + chips.g.cam.chip.y +
-            " / keylock: " + chips.g.keylock;
+            " / keylock: " + chips.g.keylock + " / turn: " + chips.g.cam.turn;
         var drawX = 6, drawY = chips.assets.canvi.gCanvas.height-6;
 
         // Erase and redraw the background
@@ -234,13 +234,35 @@ chips.draw = {
     loadScreen : function(percentLoaded) {
         var ctx = chips.assets.canvi.gContext;
 
-        ctx.font = "bold 16px Arial";
-        ctx.textAlign = "center";
         ctx.clearRect(0, 0, chips.vars.gameWindowWidth, chips.vars.gameWindowHeight);
         ctx.fillStyle = "black";
         ctx.fillRect(0, 0, chips.vars.gameWindowWidth, chips.vars.gameWindowHeight);
-        ctx.fillStyle = "red";
+
+        ctx.font = "bold 16px Arial";
+        ctx.textAlign = "center";
         ctx.fillText("Loading - " + Math.floor(percentLoaded) + "%", chips.vars.gameWindowWidth/2, chips.vars.gameWindowHeight/2);
+    },
+
+    pauseScreen : function() {
+        var ctx = chips.assets.canvi.gContext;
+        var top = chips.vars.boardOffsetY_px;
+        var left = chips.vars.boardOffsetX_px;
+        var height = chips.vars.boardHeight_tiles * chips.draw.TILE_SIZE;
+        var width = chips.vars.boardWidth_tiles * chips.draw.TILE_SIZE;
+        var textX = left + width/2;
+        var textY = top + height/2;
+
+        ctx.clearRect(left, top, width, height);
+        ctx.fillStyle = "black";
+        ctx.fillRect(left, top, width, height);
+
+        ctx.font = "48px Arial";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "red";
+        ctx.fillText("PAUSED", textX, textY);
+
+        ctx.font = "bold 16px Arial";
+        ctx.fillText("Level " + chips.g.cam.number + ": \"" + chips.g.cam.name +"\"", textX, textY + 48);
     },
 
     util : {

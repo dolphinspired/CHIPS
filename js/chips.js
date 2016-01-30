@@ -18,8 +18,6 @@ $(document).ready(function() {
     chips.assets.preload.images();
     chips.assets.preload.data();
 
-
-
     chips.g.loop = window.setInterval(function() {
         chips.g.frame++;
         if (chips.assets.areLoaded) {

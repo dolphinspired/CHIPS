@@ -10,8 +10,8 @@ chips.util = {
         SOUTH : 2,
         EAST : 3,
 
-        mod : function(direction) {
-            switch (direction) {
+        mod : function(d) {
+            switch (d) {
                 case this.NORTH:
                     return [0,-1];
                 case this.SOUTH:
@@ -22,6 +22,33 @@ chips.util = {
                     return [1,0];
                 default:
                     return [0,0];
+            }
+        },
+
+        left : function(d) {
+            return (d + 1) % 4;
+        },
+
+        right : function(d) {
+            return (d + 3) % 4;
+        },
+
+        back : function(d) {
+            return (d + 2) % 4;
+        },
+
+        others : function(d) {
+            switch (d) {
+                case this.NORTH:
+                    return [this.SOUTH, this.WEST, this.EAST];
+                case this.SOUTH:
+                    return [this.NORTH, this.WEST, this.EAST];
+                case this.WEST:
+                    return [this.NORTH, this.SOUTH, this.EAST];
+                case this.EAST:
+                    return [this.NORTH, this.SOUTH, this.WEST];
+                default:
+                    return [this.NORTH, this.SOUTH, this.WEST, this.EAST];
             }
         }
     },
@@ -113,6 +140,40 @@ chips.util = {
         }
     },
 
+    EnemyMap : function() {
+        var enemyUID = 0; // unique ID to this EnemyMap
+
+        this.list = {};
+
+        this.sync = function() {
+            var allEnemies = chips.g.cam.findTilesByLayer(chips.draw.LAYER.ENEMY);
+            for (var i = 0; i < allEnemies.length; i++) {
+                this.add(allEnemies[i][0], allEnemies[i][1]);
+            }
+        };
+
+        this.add = function(x, y) {
+            var thisEnemy = chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.ENEMY);
+            this.list[enemyUID] = {
+                name : chips.g.tLookup[thisEnemy],
+                tile : thisEnemy,
+                x : x,
+                y : y
+            };
+            enemyUID++;
+        };
+
+        this.update = function(id, x, y, tile) {
+            this.list[id].x = x;
+            this.list[id].y = y;
+            this.list[id].tile = tile;
+        };
+
+        this.remove = function(id) {
+            delete this.list[id];
+        };
+    },
+
     // The Date.now() approach might not allow for level pausing...
     LevelTimer : function() {
         this.start = Date.now();
@@ -121,13 +182,13 @@ chips.util = {
 
         this.paused = 0;
         this.paused_ms = 0;
+        this.paused_forced = false;
 
-        // TODO: Rewrite functions using the prototype approach
-
-        // True if sec was updated, false if not
+        // True if sec ("Time left") needs to be update updated, false if not
         this.tick = function() {
             if (this.paused) { this.pauseTick(); }
             this.elapsed_ms = Date.now() - this.start - this.paused_ms;
+            chips.g.cam.updateTurn(); // TODO: I feel like this *shouldn't* go here...
             if (Math.floor(this.elapsed_ms / 1000) > this.elapsed_sec) {
                 this.elapsed_sec = Math.floor(this.elapsed_ms / 1000);
                 return true;
@@ -135,11 +196,26 @@ chips.util = {
             return false;
         };
 
-        this.pause = function() {
-            if (this.paused) {
-                this.paused = 0;
-            } else {
-                this.paused = Date.now();
+        this.forcePause = function() {
+            this.paused = Date.now();
+            chips.vars.requests.add("drawPauseScreen");
+            this.paused_forced = true;
+        };
+
+        this.forceUnpause = function() {
+            // Does not unpause the game, only allows manual unpausing
+            this.paused_forced = false;
+        };
+
+        this.togglePause = function() {
+            if (!this.paused_forced) {
+                if (this.paused) {
+                    this.paused = 0;
+                    chips.vars.requests.add("redrawAll");
+                } else {
+                    this.paused = Date.now();
+                    chips.vars.requests.add("drawPauseScreen");
+                }
             }
         };
 
@@ -169,16 +245,16 @@ chips.util = {
         }
     },
 
-    edgeCollision : function(moveDir) {
-        if (moveDir === chips.util.dir.WEST && chips.g.cam.chip.x === 0) { return true; }
-        if (moveDir === chips.util.dir.NORTH && chips.g.cam.chip.y === 0) { return true; }
-        if (moveDir === chips.util.dir.EAST && chips.g.cam.chip.x === chips.g.cam.width - 1) { return true; }
-        if (moveDir === chips.util.dir.SOUTH && chips.g.cam.chip.y === chips.g.cam.height - 1) { return true; }
+    edgeCollision : function(x, y, d) {
+        if (d === chips.util.dir.WEST && x === 0) { return true; }
+        if (d === chips.util.dir.NORTH && y === 0) { return true; }
+        if (d === chips.util.dir.EAST && x === chips.g.cam.width - 1) { return true; }
+        if (d === chips.util.dir.SOUTH && y === chips.g.cam.height - 1) { return true; }
         return false;
     },
 
-    detectCollision : function(entity, type, x, y, d) {
-        if (type === "barrier" && this.edgeCollision(d)) { return true; }
+    detectCollision : function(entity, type, x, y, d, id) {
+        if (type === "barrier" && this.edgeCollision(x, y, d)) { return true; } // If edge of map, that's an immediate barrier
 
         var distance = (type === "barrier" ? 1 : 0); // If type barrier, get next tile, else get this tile
 
@@ -194,19 +270,19 @@ chips.util = {
             enemyCollision = enemyData.collision ? (enemyData.collision.all || enemyData.collision[entity]) : false;
 
             if (floorCollision && typeof floorCollision[type] == "function") {
-                floorCollision = floorCollision[type](x, y, d);
+                floorCollision = floorCollision[type](x, y, d, id);
             } else {
                 floorCollision = false;
             }
 
             if (itemCollision && typeof itemCollision[type] == "function") {
-                itemCollision = itemCollision[type](x, y, d);
+                itemCollision = itemCollision[type](x, y, d, id);
             } else {
                 itemCollision = false;
             }
 
             if (enemyCollision && typeof enemyCollision[type] == "function") {
-                enemyCollision = enemyCollision[type](x, y, d);
+                enemyCollision = enemyCollision[type](x, y, d, id);
             } else {
                 enemyCollision = false;
             }

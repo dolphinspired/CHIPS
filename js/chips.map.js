@@ -7,6 +7,7 @@ chips.map = {
     load : {
         level : function(num) {
             chips.g.cam = new chips.map.ActiveMap(num);
+            chips.vars.requests.add("redrawAll");
             chips.g.cam.view.update();
             return true;
         },
@@ -71,6 +72,9 @@ chips.map = {
         this.elapsedTime = new chips.util.LevelTimer();
 
         this.turn = 0;
+        this.chipsFacingReset = 0;
+        this.enemies = {};
+        chips.vars.requests.add("generateEnemyMap");
 
         // VALIDATION
 
@@ -82,37 +86,19 @@ chips.map = {
         this.timeLeft = (this.timeLeft < 1 ? -1 : this.timeLeft); // Min 1 second, else unlimited time
         this.chipsLeft = (this.chipsLeft < 0 ? 0 : this.chipsLeft); // Min 0 chips left
 
-
-
-
-
-        // TODO: Below is still pending rewrite
-
         this.updateTurn = function() {
             if (this.elapsedTime.elapsed_ms - (this.turn * chips.g.turnTime) > this.turn) {
                 this.turn++;
+                chips.vars.requests.add("updateDebug");
+                if (this.chipsFacingReset > 0) {
+                    this.chipsFacingReset--;
+                    if (this.chipsFacingReset === 0) {
+                        this.setChipsFacing(chips.util.dir.SOUTH);
+                    }
+                }
+                this.tickAllEnemies();
             }
         };
-
-        // Get just the Chip layer of the tile, then find out what direction he's facing
-        switch (Math.floor(this.board[this.chip.y][this.chip.x] / chips.g.tiles.CHIP_BASE) * chips.g.tiles.CHIP_BASE) {
-            case chips.g.tiles.CHIP_NORTH:
-                this.chip.facing = chips.util.dir.NORTH;
-                break;
-            case chips.g.tiles.CHIP_SOUTH:
-                this.chip.facing = chips.util.dir.SOUTH;
-                break;
-            case chips.g.tiles.CHIP_EAST:
-                this.chip.facing = chips.util.dir.EAST;
-                break;
-            case chips.g.tiles.CHIP_WEST:
-                this.chip.facing = chips.util.dir.WEST;
-                break;
-            default:
-                this.chip.facing = chips.util.dir.SOUTH;
-        }
-
-        chips.vars.requests.add("redrawAll");
 
         this.addItem = function(item) {
             this.inventory[item].quantity++;
@@ -202,11 +188,16 @@ chips.map = {
             return (retCoords.length > 0 ? retCoords : false);
         };
 
-        this.findTilesByLayer = function(tile, layer) {
-            var retCoords = [];
+        // Not specifying a tile will get all tiles that exist on the given layer
+        this.findTilesByLayer = function(layer, tile) {
+            if (typeof layer == "undefined") {
+                console.error("Layer must be defined for findTilesByLayer. Tile is optional.");
+                if (chips.g.debug) { debugger; }
+            }
+            var retCoords = [], allTiles = (typeof tile == "undefined");
             for (var y = 0; y < this.board.length; y++) {
                 for (var x = 0; x < this.board[y].length; x++) {
-                    if (this.getTileLayer(x, y, layer) === tile) {
+                    if ((allTiles && this.getTileLayer(x, y, layer) > 0) || (!allTiles && this.getTileLayer(x, y, layer) === tile)) {
                         retCoords[retCoords.length] = [x,y];
                     }
                 }
@@ -215,7 +206,11 @@ chips.map = {
         };
 
         this.getTile = function (x, y) {
-            return this.board[y][x];
+            try {
+                return this.board[y][x];
+            } catch(e) {
+                debugger;
+            }
         };
 
         this.setTile = function (x, y, tile) {
@@ -247,92 +242,24 @@ chips.map = {
             return this.setTileLayer(x, y, layer, 0);
         };
 
-        this.getRelativeTile = function(currentTileX, currentTileY, direction, distance) {
+        this.getRelativeTile = function(x, y, d, distance) {
             distance = distance || 0; // if distance is zero or unspecified, return the current tile
-
-            switch (direction) {
-                case chips.util.dir.NORTH:
-                    return this.getTile(currentTileX, currentTileY-distance);
-                    break;
-                case chips.util.dir.SOUTH:
-                    return this.getTile(currentTileX, currentTileY+distance);
-                    break;
-                case chips.util.dir.EAST:
-                    return this.getTile(currentTileX+distance, currentTileY);
-                    break;
-                case chips.util.dir.WEST:
-                    return this.getTile(currentTileX-distance, currentTileY);
-                    break;
-                default: // if direction is 0 or unspecified, return the current tile
-                    return this.getTile(currentTileX, currentTileY);
-                    break;
-            }
+            return this.getTile(x + (chips.util.dir.mod(d)[0] * distance), y + (chips.util.dir.mod(d)[1] * distance));
         };
 
-        this.setRelativeTile = function(currentTileX, currentTileY, direction, distance, tile) {
+        this.setRelativeTile = function(x, y, d, distance, tile) {
             distance = distance || 0; // if distance is zero or unspecified, return the current tile
-
-            switch (direction) {
-                case chips.util.dir.NORTH:
-                    return this.setTile(currentTileX, currentTileY-distance, tile);
-                    break;
-                case chips.util.dir.SOUTH:
-                    return this.setTile(currentTileX, currentTileY+distance, tile);
-                    break;
-                case chips.util.dir.EAST:
-                    return this.setTile(currentTileX+distance, currentTileY, tile);
-                    break;
-                case chips.util.dir.WEST:
-                    return this.setTile(currentTileX-distance, currentTileY, tile);
-                    break;
-                default: // if direction is 0 or unspecified, return the current tile
-                    return this.setTile(currentTileX, currentTileY, tile);
-                    break;
-            }
+            return this.setTile(x + (chips.util.dir.mod(d)[0] * distance), y + (chips.util.dir.mod(d)[1] * distance), tile);
         };
 
-        this.getRelativeTileLayer = function(currentTileX, currentTileY, direction, distance, layer) {
+        this.getRelativeTileLayer = function(x, y, d, distance, layer) {
             distance = distance || 0; // if distance is zero or unspecified, return the current tile
-
-            switch (direction) {
-                case chips.util.dir.NORTH:
-                    return this.getTileLayer(currentTileX, currentTileY-distance, layer);
-                    break;
-                case chips.util.dir.SOUTH:
-                    return this.getTileLayer(currentTileX, currentTileY+distance, layer);
-                    break;
-                case chips.util.dir.EAST:
-                    return this.getTileLayer(currentTileX+distance, currentTileY, layer);
-                    break;
-                case chips.util.dir.WEST:
-                    return this.getTileLayer(currentTileX-distance, currentTileY, layer);
-                    break;
-                default: // if direction is 0 or unspecified, return the current tile
-                    return this.getTileLayer(currentTileX, currentTileY, layer);
-                    break;
-            }
+            return this.getTileLayer(x + (chips.util.dir.mod(d)[0] * distance), y + (chips.util.dir.mod(d)[1] * distance), layer);
         };
 
-        this.setRelativeTileLayer = function(currentTileX, currentTileY, direction, distance, layer, tile) {
+        this.setRelativeTileLayer = function(x, y, d, distance, layer, tile) {
             distance = distance || 0; // if distance is zero or unspecified, return the current tile
-
-            switch (direction) {
-                case chips.util.dir.NORTH:
-                    return this.setTileLayer(currentTileX, currentTileY-distance, layer, tile);
-                    break;
-                case chips.util.dir.SOUTH:
-                    return this.setTileLayer(currentTileX, currentTileY+distance, layer, tile);
-                    break;
-                case chips.util.dir.EAST:
-                    return this.setTileLayer(currentTileX+distance, currentTileY, layer, tile);
-                    break;
-                case chips.util.dir.WEST:
-                    return this.setTileLayer(currentTileX-distance, currentTileY, layer, tile);
-                    break;
-                default: // if direction is 0 or unspecified, return the current tile
-                    return this.setTile(currentTileX, currentTileY, layer, tile);
-                    break;
-            }
+            return this.setTileLayer(x + (chips.util.dir.mod(d)[0] * distance), y + (chips.util.dir.mod(d)[1] * distance), layer, tile);
         };
 
         this.clearRelativeTileLayer = function(currentTileX, currentTileY, direction, distance, layer) {
@@ -419,15 +346,38 @@ chips.map = {
             return this.clearNextTileLayer(this.chip.x, this.chip.y, direction, layer);
         };
 
-        this.setEnemyFacing = function(x, y, d) {
+        this.getEnemyFacing = function(x, y) {
+            // TODO: avoid magic numbers
+            return chips.util.getLayerCoord(chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.ENEMY), 4) % 4;
+        };
 
+        this.setEnemyFacing = function(x, y, d, id) {
+            // TODO: Mathematical approach?
+            var dirName = chips.util.getKeyByValue(chips.util.dir, d);
+            var facedTile = chips.g.tiles[this.enemies.list[id].name + "_" + dirName.toUpperCase()];
+            this.setTileLayer(x, y, chips.draw.LAYER.ENEMY, facedTile);
+        };
+
+        this.getChipsFacing = function() {
+            // TODO: avoid magic numbers
+            return chips.util.getLayerCoord(chips.g.cam.getChipsTileLayer(chips.draw.LAYER.CHIP), 6) % 4;
         };
 
         this.setChipsFacing = function(d) {
             var dirName = chips.util.getKeyByValue(chips.util.dir, d);
             var facedTile = chips.g.tiles["CHIP_" + dirName.toUpperCase()];
             this.setChipsTileLayer(chips.draw.LAYER.CHIP, facedTile);
-            this.chip.facing = d;
+        };
+
+        this.tickAllEnemies = function() {
+            for (var enemy in this.enemies.list) {
+                if (!this.enemies.list.hasOwnProperty(enemy)) { continue; }
+                var thisEnemy = this.enemies.list[enemy];
+                if (chips.data.tiles[thisEnemy.name].speed && this.turn % chips.data.tiles[thisEnemy.name].speed === 0) {
+                    chips.data.tiles[thisEnemy.name].behavior(
+                        thisEnemy.x, thisEnemy.y, this.getEnemyFacing(thisEnemy.x, thisEnemy.y), enemy);
+                }
+            }
         };
 
         this.view = {

@@ -11,6 +11,7 @@ div {
 	margin-right: auto;
 	padding-top: 12px;
 	padding-bottom: 12px;
+    text-align: center;
 }
 
 #gameCanvas {
@@ -33,6 +34,31 @@ div {
 }
 button.totesTouchscreenCompatible {
     font-size: 36px;
+}
+
+#gameInstructions > table {
+    margin: auto;
+    border: outset 5px;
+    border-spacing: 0;
+}
+
+#gameInstructions > table tr:nth-of-type(even) {
+    background-color: black;
+    color: white;
+}
+
+#gameInstructions > table tr:nth-of-type(odd) {
+    background-color: #BBB;
+    color: black;
+}
+
+#gameInstructions > table td {
+    padding: 2px;
+    text-align: left;
+}
+
+#gameInstructions > table td:nth-of-type(even) {
+    padding-left: 12px;
 }
 
 div.linkbar {

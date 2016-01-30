@@ -25,7 +25,9 @@ For the time being, additional questions about this project can be addressed to 
 ## ![EXIT](https://raw.githubusercontent.com/dolphinspired/CHIPS/master/img/exit.png) Changelog ![EXIT](https://raw.githubusercontent.com/dolphinspired/CHIPS/master/img/exit.png)
 
 **Alpha**
-
+* 0.2.1 - Enemies have appeared! You can see the Glider, Fireball, Bug, and Paramecium in action on Level 9, or the Ball on Level 3. In addition...
+  * You can now hold down the arrow keys to move continuously. Practice "marching" with the bugs in Level 9 to see how the timing pairs up.
+  * Pausing! You can now pause your game with SHIFT-C or the Pause button the control panel. Also, the game will automatically pause when you lose focus on the game's page (much like the original), but you must manually unpause.
 * 0.2.0 - No feature changes, but a MAJOR code overhaul. App rearchitected for improved modularity.
   * No more global functions/vars! Everything is neatly organized within the *chips* namespace.
   * Levels are now grouped into Levelsets, which are stored on the server as JSON files (Only one exists now: Test.json)

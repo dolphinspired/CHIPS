@@ -272,7 +272,7 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(x, y, d, id) {
                         var thisEnemy = chips.g.tLookup[chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.ENEMY)];
                         var submerges, resists;
 
@@ -295,7 +295,7 @@ chips.data = {
                         }
 
                         if (!resists) {
-                            chips.g.cam.clearTileLayer(x, y, chips.draw.LAYER.ENEMY);
+                            chips.events.enemy.kill(x, y, id);
                             return true;
                         }
 
@@ -326,11 +326,18 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "interactive" : function(x, y, d) {
-                        var thisEnemy = chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.ENEMY);
-                        // TODO: Make a function for detecting enemy type, or modularize "tile resistance"
-                        if (!(thisEnemy >= chips.g.tiles.ENEMY_FIREBALL_NORTH && thisEnemy <= chips.g.tiles.ENEMY_FIREBALL_EAST)) {
-                            chips.g.cam.clearTileLayer(x, y, chips.draw.LAYER.ENEMY);
+                    "interactive" : function(x, y, d, id) {
+                        var thisEnemy = chips.g.tLookup[chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.ENEMY)];
+                        var resists;
+
+                        try {
+                            resists = chips.data.tiles[thisEnemy].resists["fire"];
+                        } catch(e) {
+                            resists = false;
+                        }
+
+                        if (!resists) {
+                            chips.events.enemy.kill(x, y, id);
                             return true;
                         }
                         else return false;
@@ -350,7 +357,20 @@ chips.data = {
             "type" : "floor",
             "value" : 34,
             "collision" : {
-                "enemy" : true
+                "enemy" : {
+                    "barrier" : function(x, y, d) {
+                        var thisEnemy = chips.g.tLookup[chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.ENEMY)];
+                        var resists;
+
+                        try {
+                            resists = chips.data.tiles[thisEnemy].resists["gravel"];
+                        } catch(e) {
+                            resists = false;
+                        }
+
+                        return !resists;
+                    }
+                }
             }
         },
         THIEF : {
@@ -431,7 +451,7 @@ chips.data = {
                 "player" : {
                     "interactive": function (x, y, d) {
                         var destX, destY;
-                        var teleports = chips.g.cam.findTilesByLayer(chips.g.tiles.TELEPORT, chips.draw.LAYER.FLOOR);
+                        var teleports = chips.g.cam.findTilesByLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.TELEPORT);
 
                         for (var i = 0; i < teleports.length; i++) {
                             // If this teleport is the tile that Chip is currently on
@@ -458,7 +478,7 @@ chips.data = {
                 "enemy" : {
                     "interactive" : function(x, y, d) {
                         var destX, destY;
-                        var teleports = chips.g.cam.findTilesByLayer(chips.g.tiles.TELEPORT, chips.draw.LAYER.FLOOR);
+                        var teleports = chips.g.cam.findTilesByLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.TELEPORT);
 
                         for (var i = 0; i < teleports.length; i++) {
                             // If this teleport is the tile that Chip is currently on
@@ -800,9 +820,10 @@ chips.data = {
                     }
                 }
             },
-            "behavior" : function() {
-                // TODO: move forward until a barrier collision, then stop
-            }
+            "behavior" : function(x, y, d, id) {
+                // move forward until a barrier collision, then stop
+            },
+            "speed" : 2
         },
         BUG : {
             "type" : "enemy",
@@ -825,9 +846,20 @@ chips.data = {
                     }
                 }
             },
-            "behavior" : function() {
-                // TODO: follow the barrier to its left, else circle counter-clockwise
-            }
+            "behavior" : function(x, y, d, id) {
+                // follow the barrier to its left, else circle counter-clockwise
+                if (chips.events.enemy.move(x, y, chips.util.dir.left(d), id)) {
+                    return true;
+                } if (chips.events.enemy.move(x, y, d, id)) {
+                    return true;
+                } if (chips.events.enemy.move(x, y, chips.util.dir.right(d), id)) {
+                    return true;
+                } if (chips.events.enemy.move(x, y, chips.util.dir.back(d), id)) {
+                    return true;
+                }
+                return false;
+            },
+            "speed" : 2
         },
         PARAMECIUM : {
             "type" : "enemy",
@@ -851,9 +883,20 @@ chips.data = {
                     }
                 }
             },
-            "behavior" : function() {
-                // TODO: follow the barrier to its right, else circle clockwise
-            }
+            "behavior" : function(x, y, d, id) {
+                // follow the barrier to its right, else circle clockwise
+                if (chips.events.enemy.move(x, y, chips.util.dir.right(d), id)) {
+                    return true;
+                } if (chips.events.enemy.move(x, y, d, id)) {
+                    return true;
+                } if (chips.events.enemy.move(x, y, chips.util.dir.left(d), id)) {
+                    return true;
+                } if (chips.events.enemy.move(x, y, chips.util.dir.back(d), id)) {
+                    return true;
+                }
+                return false;
+            },
+            "speed" : 2
         },
         GLIDER : {
             "type" : "enemy",
@@ -880,9 +923,20 @@ chips.data = {
             "resists" : {
                 "water" : true
             },
-            "behavior" : function() {
-                // TODO: turn left on a barrier collision, else right, else reverse
-            }
+            "behavior" : function(x, y, d, id) {
+                // turn left on a barrier collision, else right, else reverse
+                if (chips.events.enemy.move(x, y, d, id)) {
+                    return true;
+                } if (chips.events.enemy.move(x, y, chips.util.dir.left(d), id)) {
+                    return true;
+                } if (chips.events.enemy.move(x, y, chips.util.dir.right(d), id)) {
+                    return true;
+                } if (chips.events.enemy.move(x, y, chips.util.dir.back(d), id)) {
+                    return true;
+                }
+                return false;
+            },
+            "speed" : 2
         },
         FIREBALL : {
             "type" : "enemy",
@@ -909,9 +963,20 @@ chips.data = {
                     }
                 }
             },
-            "behavior" : function() {
-                // TODO: turn right on a barrier collision, else left, else reverse
-            }
+            "behavior" : function(x, y, d, id) {
+                // turn right on a barrier collision, else left, else reverse
+                if (chips.events.enemy.move(x, y, d, id)) {
+                    return true;
+                } if (chips.events.enemy.move(x, y, chips.util.dir.right(d), id)) {
+                    return true;
+                } if (chips.events.enemy.move(x, y, chips.util.dir.left(d), id)) {
+                    return true;
+                } if (chips.events.enemy.move(x, y, chips.util.dir.back(d), id)) {
+                    return true;
+                }
+                return false;
+            },
+            "speed" : 2
         },
         BALL : {
             "type" : "enemy",
@@ -935,9 +1000,16 @@ chips.data = {
                     }
                 }
             },
-            "behavior" : function() {
-                // TODO: reverse direction on a barrier collision
-            }
+            "behavior" : function(x, y, d, id) {
+                // reverse direction on a barrier collision
+                if (chips.events.enemy.move(x, y, d, id)) {
+                    return true;
+                } if (chips.events.enemy.move(x, y, chips.util.dir.back(d), id)) {
+                    return true;
+                }
+                return false;
+            },
+            "speed" : 2
         },
         WALKER : {
             "type" : "enemy",
@@ -961,9 +1033,10 @@ chips.data = {
                     }
                 }
             },
-            "behavior" : function() {
-                // TODO: random direction on a barrier collision
-            }
+            "behavior" : function(x, y, d, id) {
+                // random direction on a barrier collision
+            },
+            "speed" : 2
         },
         TEETH : {
             "type" : "enemy",
@@ -987,9 +1060,10 @@ chips.data = {
                     }
                 }
             },
-            "behavior" : function() {
-                // TODO: walks toward Chip
-            }
+            "behavior" : function(x, y, d, id) {
+                // walks toward Chip
+            },
+            "speed" : 4
         },
         BLOB : {
             "type" : "enemy",
@@ -1013,9 +1087,10 @@ chips.data = {
                     }
                 }
             },
-            "behavior" : function() {
-                // TODO: moves in a random direction
-            }
+            "behavior" : function(x, y, d, id) {
+                // moves in a random direction
+            },
+            "speed" : 4
         },
         BLOCK : {
             "type" : "enemy",
@@ -1055,9 +1130,11 @@ chips.data = {
                     }
                 }
             },
-            "behavior" : function() {
-                // TODO: does not move unless chip pushes it, kills Chip if block lands on Chip
-            }
+            "behavior" : function(x, y, d, id) {
+                // does not move unless chip pushes it, kills Chip if block lands on Chip
+                // this behavior should remain empty
+            },
+            "speed" : 0
         },
 
         CHIP : {
@@ -1076,7 +1153,8 @@ chips.data = {
                         chips.events.chip.kill();
                     }
                 }
-            }
+            },
+            "speed" : 2
         },
         CHIP_NOSHADOW : {
             "type" : "player",
@@ -1094,7 +1172,8 @@ chips.data = {
                         chips.events.chip.kill();
                     }
                 }
-            }
+            },
+            "speed" : 2
         },
         CHIP_SWIM : {
             "type" : "player",
@@ -1112,7 +1191,8 @@ chips.data = {
                         chips.events.chip.kill();
                     }
                 }
-            }
+            },
+            "speed" : 2
         },
         CHIP_STAND : {
             "type" : "player",

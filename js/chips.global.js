@@ -5,9 +5,13 @@
 chips.g = {
     frame : 0,
     state : 0,
-    keylock : 0,
     debug : 1,
-    turnTime : 200,
+    turnTime : 100,
+
+    keylock : 0,
+    moveStreakStart : -1,
+    lastMoveTurn : -1,
+    oddStep : 0,
 
     loop : {},
     cam : {}, // Current Active Map
@@ -25,6 +29,14 @@ chips.g = {
         this.cls = chips.data.levels.loaded[this.last.levelset];
         this.tiles = new chips.util.TileMap(chips.data.tiles); // TODO: Change all these when tilesets are implemented
         this.tLookup = new chips.util.ReverseTileMap(chips.data.tiles);
+
+        if (chips.vars.pauseOnLoseFocus) {
+            $(window).on("blur", function(e) {
+                chips.g.cam.elapsedTime.forcePause();
+            }).on("focus", function(e) {
+                chips.g.cam.elapsedTime.forceUnpause();
+            });
+        }
     },
 
     test : {
