@@ -13,7 +13,9 @@ chips.data = {
             "value" : 1,
             "collision" : {
                 "all" : {
-                    "barrier" : function(x, y, d) { return true; }
+                    "barrier" : function(x, y, d) {
+                        return true;
+                    }
                 }
             }
         },
@@ -28,7 +30,9 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) { return true; }
+                    "barrier" : function(x, y, d, id) {
+                        return true;
+                    }
                 }
             },
             "properties" : {
@@ -46,7 +50,9 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) { return true; }
+                    "barrier" : function(x, y, d, id) {
+                        return true;
+                    }
                 }
             }
         },
@@ -61,7 +67,9 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) { return true; }
+                    "barrier" : function(x, y, d, id) {
+                        return true;
+                    }
                 }
             }
 
@@ -81,7 +89,9 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) { return true; }
+                    "barrier" : function(x, y, d, id) {
+                        return true;
+                    }
                 }
             }
         },
@@ -96,7 +106,7 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
@@ -283,7 +293,7 @@ chips.data = {
                         }
 
                         if (submerges) {
-                            chips.g.cam.clearTileLayer(x, y, chips.draw.LAYER.ENEMY);
+                            chips.events.enemy.kill(x, y, id);
                             chips.g.cam.setTileLayer(x, y, chips.draw.LAYER.FLOOR, chips.g.tiles.MUD);
                             return true;
                         }
@@ -358,7 +368,7 @@ chips.data = {
             "value" : 34,
             "collision" : {
                 "enemy" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(x, y, d, id) {
                         var thisEnemy = chips.g.tLookup[chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.ENEMY)];
                         var resists;
 
@@ -398,9 +408,9 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.clearTileLayer(x, y, chips.draw.LAYER.ENEMY);
-                        chips.g.cam.setTileLayer(x, y, chips.draw.LAYER.FLOOR, chips.g.tiles.FLOOR);
+                    "interactive" : function(x, y, d, id) {
+                        chips.events.enemy.kill(x, y, id);
+                        chips.g.cam.clearTileLayer(x, y, chips.draw.LAYER.FLOOR);
                         return true;
                     }
                 }
@@ -434,6 +444,11 @@ chips.data = {
                 "player" : {
                     "interactive" : function(x, y, d) {
                         chips.g.cam.setChipsTileLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.WALL);
+                        return true;
+                    }
+                },
+                "enemy" : {
+                    "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
@@ -476,28 +491,12 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(x, y, d, id) {
                         var destX, destY;
                         var teleports = chips.g.cam.findTilesByLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.TELEPORT);
 
-                        for (var i = 0; i < teleports.length; i++) {
-                            // If this teleport is the tile that Chip is currently on
-                            if (teleports[i][0] === chips.g.cam.chip.x && teleports[i][1] === chips.g.cam.chip.y) {
-                                if (!destX || !destY) continue; // Destination not yet set (first iteration), keep trying
-                                else break;
-                            } else {
-                                if (!chips.util.detectCollision("player", "barrier", teleports[i][0], teleports[i][1], d)) {
-                                    destX = teleports[i][0];
-                                    destY = teleports[i][1];
-                                }
-                            }
-                        }
-                        // TODO: this needs to be treated like a slide
-                        if (destX && destY) {
-                            var thisEnemy = chips.g.cam.getTileLayer(chips.draw.LAYER.ENEMY);
-                            chips.g.cam.clearTileLayer(x, y, chips.draw.LAYER.ENEMY);
-                            chips.g.cam.setTileLayer(destX, destY, chips.draw.LAYER.ENEMY, thisEnemy);
-                        }
+                        // TODO: Enemy teleports
+
                         return true;
                     }
                 }
@@ -552,7 +551,9 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) { return true; }
+                    "barrier" : function(x, y, d, id) {
+                        return true;
+                    }
                 }
             }
         },
@@ -571,7 +572,9 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) { return true; }
+                    "barrier" : function(x, y, d, id) {
+                        return true;
+                    }
                 }
             }
         },
@@ -590,7 +593,9 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) { return true; }
+                    "barrier" : function(x, y, d, id) {
+                        return true;
+                    }
                 }
             }
         },
@@ -609,7 +614,9 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) { return true; }
+                    "barrier" : function(x, y, d, id) {
+                        return true;
+                    }
                 }
             }
         },
@@ -628,7 +635,9 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) { return true; }
+                    "barrier" : function(x, y, d, id) {
+                        return true;
+                    }
                 }
             }
         },
@@ -637,7 +646,9 @@ chips.data = {
             "value" : 70,
             "collision" : {
                 "all" : {
-                    "barrier" : function(x, y, d) { return true; }
+                    "barrier" : function(x, y, d) {
+                        return true;
+                    }
                 }
             }
         },
@@ -666,7 +677,9 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) { return true; }
+                    "barrier" : function(x, y, d, id) {
+                        return true;
+                    }
                 }
             }
         },
@@ -815,13 +828,14 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
             },
             "behavior" : function(x, y, d, id) {
                 // move forward until a barrier collision, then stop
+                return chips.events.enemy.move(x, y, d, id);
             },
             "speed" : 2
         },
@@ -841,7 +855,7 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
@@ -878,7 +892,7 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
@@ -915,7 +929,7 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
@@ -958,7 +972,7 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
@@ -995,7 +1009,7 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
@@ -1028,13 +1042,25 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
             },
             "behavior" : function(x, y, d, id) {
-                // random direction on a barrier collision
+                // move forward until barrier collision, then turn in a random direction
+                if (chips.events.enemy.move(x, y, d, id)) {
+                    return true;
+                } else {
+                    // Get all remaining dirs, randomly shuffled, and try to move in each dir
+                    var remaining = chips.util.dir.shuffle(d);
+                    for (var i = 0; i < remaining.length; i++) {
+                        if (chips.events.enemy.move(x, y, remaining[i], id)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
             },
             "speed" : 2
         },
@@ -1055,7 +1081,7 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
@@ -1082,13 +1108,21 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
             },
             "behavior" : function(x, y, d, id) {
                 // moves in a random direction
+                var random = chips.util.dir.shuffle();
+
+                for (var i = 0; i < random.length; i++) {
+                    if (chips.events.enemy.move(x, y, random[i], id)) {
+                        return true;
+                    }
+                }
+                return false;
             },
             "speed" : 4
         },
@@ -1125,7 +1159,7 @@ chips.data = {
                     }
                 },
                 "enemy" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
@@ -1149,7 +1183,7 @@ chips.data = {
             },
             "collision" : {
                 "enemy" : {
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(x, y, d, id) {
                         chips.events.chip.kill();
                     }
                 }
@@ -1168,7 +1202,7 @@ chips.data = {
             },
             "collision" : {
                 "enemy" : {
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(x, y, d, id) {
                         chips.events.chip.kill();
                     }
                 }
@@ -1187,7 +1221,7 @@ chips.data = {
             },
             "collision" : {
                 "enemy" : {
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(x, y, d, id) {
                         chips.events.chip.kill();
                     }
                 }

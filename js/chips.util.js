@@ -10,6 +10,8 @@ chips.util = {
         SOUTH : 2,
         EAST : 3,
 
+        // Use in conjunction with x[0] and y[1] coordinates to modify coords based on a given direction
+        // If no direction provided, returns 0 for both x and y
         mod : function(d) {
             switch (d) {
                 case this.NORTH:
@@ -25,31 +27,53 @@ chips.util = {
             }
         },
 
+        // Returns the dir to the entity's left
         left : function(d) {
             return (d + 1) % 4;
         },
 
+        // Returns the dir to th entity's right
         right : function(d) {
             return (d + 3) % 4;
         },
 
+        // Returns the dir behind the entity
         back : function(d) {
             return (d + 2) % 4;
         },
 
-        others : function(d) {
-            switch (d) {
-                case this.NORTH:
-                    return [this.SOUTH, this.WEST, this.EAST];
-                case this.SOUTH:
-                    return [this.NORTH, this.WEST, this.EAST];
-                case this.WEST:
-                    return [this.NORTH, this.SOUTH, this.EAST];
-                case this.EAST:
-                    return [this.NORTH, this.SOUTH, this.WEST];
-                default:
-                    return [this.NORTH, this.SOUTH, this.WEST, this.EAST];
+        // Returns all dirs that do not match the one provided; else returns all dirs
+        others : function(dirToExclude) {
+            var retArray = [this.NORTH, this.SOUTH, this.EAST, this.WEST];
+
+            if (dirToExclude) {
+                for (var i = 0; i < retArray.length; i++) {
+                    if (retArray[i] === dirToExclude) {
+                        retArray.splice(i, 1);
+                        break;
+                    }
+                }
             }
+
+            return retArray;
+        },
+
+        // Returns all dirs shuffled for randomized movement (can exclude one dir if provided)
+        shuffle : function(dirToExclude) {
+            var retArray = this.others(dirToExclude);
+
+            var cur = retArray.length, temp, ran;
+
+            while (cur !== 0) {
+                ran = Math.floor(Math.random() * cur);
+                cur--;
+
+                temp = retArray[cur];
+                retArray[cur] = retArray[ran];
+                retArray[ran] = temp;
+            }
+
+            return retArray;
         }
     },
 
