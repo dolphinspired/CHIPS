@@ -18,6 +18,13 @@
         <script src="js/chips.events.js"></script>
         <script src="js/chips.map.js"></script>
         <script>
+            $(document).ready(function() {
+                $("#buttonShower").on("click", function(e) {
+                    $("#buttonShower").css("display", "none");
+                    $("#moveControls").css("display", "block");
+                });
+            });
+
             function toggleAtlases() {
                 var divs = $("[id^='refContainer']");
                 for (var i = 0; i < divs.length; i++) {
@@ -56,17 +63,20 @@
                     <br/><br/>
                     <button onclick="chips.g.cam.elapsedTime.togglePause();">Pause</button>
                 </td>
-                <td id="moveControls">
-                    &nbsp;<button id="buttonUp" class="totesTouchscreenCompatible">&#9650;</button>
-                    <br/>
-                    <button id="buttonLeft" class="totesTouchscreenCompatible">&#9664;</button>
-                    <button id="buttonDown" class="totesTouchscreenCompatible">&#9660;</button>
-                    <button id="buttonRight" class="totesTouchscreenCompatible">&#9654;</button>
+                <td id="movement">
+                    <span id="buttonShower">Use your arrow keys to move, or click here to show on-screen buttons (warning: not very good).</span>
+                    <div id="moveControls">
+                        &nbsp;<button id="buttonUp" class="totesTouchscreenCompatible">&#9650;</button>
+                        <br/>
+                        <button id="buttonLeft" class="totesTouchscreenCompatible">&#9664;</button>
+                        <button id="buttonDown" class="totesTouchscreenCompatible">&#9660;</button>
+                        <button id="buttonRight" class="totesTouchscreenCompatible">&#9654;</button>
+                    </div>
                 </td>
             </tr>
         </table>
         <div id="gameInstructions">
-            <h4>Controls:</h4>
+            <h4>Keyboard Controls:</h4>
             <table>
                 <tbody>
                     <tr>

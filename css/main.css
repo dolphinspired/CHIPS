@@ -21,17 +21,27 @@ div {
 #controls {
     margin: 0 auto;
     text-align: center;
-    width: auto;
+    width: 512px;
     padding-bottom: 32px;
     padding-top: 16px;
     border-top: 1px solid black;
     border-bottom: 1px solid black;
 }
 
+#controls td {
+    width: 50%;
+}
+
+#buttonShower {
+    font-size: 12px;
+}
+
 #moveControls {
     text-align: center;
     padding-left: 32px;
+    display: none;
 }
+
 button.totesTouchscreenCompatible {
     font-size: 36px;
 }
