@@ -24,9 +24,20 @@ For the time being, additional questions about this project can be addressed to 
 
 ## ![EXIT](https://raw.githubusercontent.com/dolphinspired/CHIPS/master/img/exit.png) Changelog ![EXIT](https://raw.githubusercontent.com/dolphinspired/CHIPS/master/img/exit.png)
 
+**Beta**
+
+The beta phase will begin once the game is feature-complete (compared to MS-CC1). This will focus on creating a level editor, creating real levels, and enhancing the game for web browser and mobile play.
+
 **Alpha**
-* 0.2.2 - 2 new enemies, the Blob and the Walker, can now be observed in Level 10!
-* 0.2.1 - Enemies have appeared! You can see the Glider, Fireball, Bug, and Paramecium in action on Level 9, or the Ball on Level 3. In addition...
+
+The alpha phase of development will focus on getting all MS-CC1 features into the game and making sure the game controls accurately and, in general, adheres to the [Microsoft Ruleset](http://chipschallenge.wikia.com/wiki/Ruleset#Microsoft_ruleset).
+
+* 0.3.0 - Chip's most sentient foes, the Teeth and Tank, are now alive! They're squatting in the freshly-painted Level 5. And with that, all monsters are now in the game! In other news: 
+  * Actually a CC2 feature: the Red Thief is now available in Level 2. In this edition, the red thief will politely ask for all the keys you are carrying, but will leave your boots alone.
+  * The tileset was rearranged a little bit, do a hard-refresh in your browser to make sure you're getting the latest one.
+  * Several objects were moved out of chips.util.js and into chips.obj.js. This file follows more closely a Module-style architecture, which I would like to implement across the app.
+* 0.2.2 - 2 new monsters, the Blob and the Walker, can now be observed in Level 10!
+* 0.2.1 - Monsters have appeared! You can see the Glider, Fireball, Bug, and Paramecium in action on Level 9, or the Ball on Level 3. In addition...
   * You can now hold down the arrow keys to move continuously. Practice "marching" with the bugs in Level 9 to see how the timing pairs up.
   * Pausing! You can now pause your game with SHIFT-C or the Pause button the control panel. Also, the game will automatically pause when you lose focus on the game's page (much like the original), but you must manually unpause.
 * 0.2.0 - No feature changes, but a MAJOR code overhaul. App rearchitected for improved modularity.

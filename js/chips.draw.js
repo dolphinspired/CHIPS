@@ -18,7 +18,7 @@ chips.draw = {
     LAYER : {
         FLOOR : 0,
         ITEM : 1,
-        ENEMY : 2,
+        MONSTER : 2,
         CHIP : 3
     },
 

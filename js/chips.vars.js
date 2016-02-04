@@ -216,10 +216,10 @@ chips.vars = {
                 chips.events.init();
                 this.reset();
             });
-            this["generateEnemyMap"] = new this.GameRequest(function() {
-                chips.g.cam.enemies = {};
-                chips.g.cam.enemies = new chips.util.EnemyMap();
-                chips.g.cam.enemies.sync();
+            this["generateMonsterList"] = new this.GameRequest(function() {
+                chips.g.cam.monsters = {};
+                chips.g.cam.monsters = new chips.obj.MonsterList();
+                chips.g.cam.monsters.sync();
                 this.reset();
             });
             this["drawPauseScreen"] = new this.GameRequest(function() {

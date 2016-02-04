@@ -27,8 +27,8 @@ chips.g = {
     // Refresh is run automatically when all assets are loaded
     refresh : function() {
         this.cls = chips.data.levels.loaded[this.last.levelset];
-        this.tiles = new chips.util.TileMap(chips.data.tiles); // TODO: Change all these when tilesets are implemented
-        this.tLookup = new chips.util.ReverseTileMap(chips.data.tiles);
+        this.tiles = new chips.obj.TileMap(chips.data.tiles); // TODO: Change all these when tilesets are implemented
+        this.tLookup = new chips.obj.ReverseTileMap(chips.data.tiles);
 
         if (chips.vars.pauseOnLoseFocus) {
             $(window).on("blur", function(e) {

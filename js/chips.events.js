@@ -206,32 +206,5 @@ chips.events = {
             chips.vars.requests.add("setGameMessage", [retStr]);
             chips.map.load.nextLevel();
         }
-    },
-
-    enemy : {
-        move : function(x, y, d, id) {
-            // For some enemies, barrier collision may have already been called once
-            var hasLockingCollision = chips.util.detectCollision("enemy", "locking", x, y, d);
-            var hasBarrierCollision = chips.util.detectCollision("enemy", "barrier", x, y, d);
-
-            if (!hasLockingCollision && !hasBarrierCollision) {
-                chips.g.cam.setEnemyFacing(x, y, d, id);
-                var xDest = x + chips.util.dir.mod(d)[0],
-                    yDest = y + chips.util.dir.mod(d)[1],
-                    layer = chips.draw.LAYER.ENEMY,
-                    newEnemyTile = chips.g.cam.getTileLayer(x, y, layer);
-                chips.g.cam.setTileLayer(xDest, yDest, layer, newEnemyTile);
-                chips.g.cam.clearTileLayer(x, y, layer);
-                chips.g.cam.enemies.update(id, xDest, yDest, newEnemyTile);
-                chips.util.detectCollision("enemy", "interactive", xDest, yDest, d, id);
-                return true;
-            } else {
-                return false;
-            }
-        },
-        kill : function(x, y, id) {
-            chips.g.cam.clearTileLayer(x, y, chips.draw.LAYER.ENEMY);
-            chips.g.cam.enemies.remove(id);
-        }
     }
 };

@@ -42,6 +42,20 @@ chips.util = {
             return (d + 2) % 4;
         },
 
+        // Returns "NORTH", "EAST", etc.
+        toString : function(d) {
+            switch (d) {
+                case this.NORTH:
+                    return "NORTH";
+                case this.SOUTH:
+                    return "SOUTH";
+                case this.WEST:
+                    return "WEST";
+                case this.EAST:
+                    return "EAST";
+            }
+        },
+
         // Returns all dirs that do not match the one provided; else returns all dirs
         others : function(dirToExclude) {
             var retArray = [this.NORTH, this.SOUTH, this.EAST, this.WEST];
@@ -74,6 +88,55 @@ chips.util = {
             }
 
             return retArray;
+        },
+
+        // Given 2 coordinate pairs, find the NSEW direction that would bring them closest together
+        // In the case of a tie (perfect diagonal), move vertically (unless otherwise specified!)
+        // returns one or two directions in an array, where the first element is the greatest priority direction
+        // to take if you want to reach your destination
+
+        approach : function(xSrc, ySrc, xDest, yDest, tiebreaker) {
+            if (xSrc === xDest && ySrc === yDest) {
+                return false; // coordinates are identical
+            }
+
+            if (Math.abs(xDest - xSrc) > Math.abs(yDest - ySrc)) { // X diff is greater magnitude
+                if (xDest > xSrc) {
+                    if (yDest > ySrc) {
+                        return [this.EAST, this.SOUTH];
+                    } if (yDest < ySrc) {
+                        return [this.EAST, this.NORTH];
+                    } else {
+                        return [this.EAST];
+                    }
+                } else {
+                    if (yDest > ySrc) {
+                        return [this.WEST, this.SOUTH];
+                    } if (yDest < ySrc) {
+                        return [this.WEST, this.NORTH];
+                    } else {
+                        return [this.WEST];
+                    }
+                }
+            } else { // Y diff is greater magnitude
+                if (yDest > ySrc) {
+                    if (xDest > xSrc) {
+                        return [this.SOUTH, this.EAST];
+                    } if (xDest < xSrc) {
+                        return [this.SOUTH, this.WEST];
+                    } else {
+                        return [this.SOUTH];
+                    }
+                } else {
+                    if (xDest > xSrc) {
+                        return [this.NORTH, this.EAST];
+                    } if (xDest < xSrc) {
+                        return [this.NORTH, this.WEST];
+                    } else {
+                        return [this.NORTH];
+                    }
+                }
+            }
         }
     },
 
@@ -124,131 +187,6 @@ chips.util = {
         return retArray;
     },
 
-    TileMap : function(tData) {
-        for (var i in tData) {
-            if (!tData.hasOwnProperty(i)) { continue; }
-            if (typeof tData[i].value !== "object") {
-                this[i] = tData[i].value;
-            } else {
-                for (var j in tData[i].value) {
-                    if (!tData[i].value.hasOwnProperty(j)) { continue; }
-                    this[i + "_" + j.toUpperCase()] = tData[i].value[j];
-                }
-            }
-        }
-    },
-
-    ReverseTileMap : function(tData) {
-        for (var i in tData) {
-            if (!tData.hasOwnProperty(i)) { continue; }
-            if (typeof tData[i].value !== "object") {
-                this[tData[i].value] = i;
-            } else {
-                for (var j in tData[i].value) {
-                    if (!tData[i].value.hasOwnProperty(j)) { continue; }
-                    this[tData[i].value[j]] = i;
-                }
-            }
-        }
-    },
-
-    InventoryMap : function(tData) {
-        for (var i in tData) {
-            if (!tData.hasOwnProperty(i)) { continue; }
-            if (tData[i].type === "item" && tData[i].inventory && tData[i].inventory.slot >= 0) {
-                this[i] = {
-                    "quantity": 0,
-                    "slot": tData[i].inventory.slot
-                }
-            }
-        }
-    },
-
-    EnemyMap : function() {
-        var enemyUID = 0; // unique ID to this EnemyMap
-
-        this.list = {};
-
-        this.sync = function() {
-            var allEnemies = chips.g.cam.findTilesByLayer(chips.draw.LAYER.ENEMY);
-            for (var i = 0; i < allEnemies.length; i++) {
-                this.add(allEnemies[i][0], allEnemies[i][1]);
-            }
-        };
-
-        this.add = function(x, y) {
-            var thisEnemy = chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.ENEMY);
-            this.list[enemyUID] = {
-                name : chips.g.tLookup[thisEnemy],
-                tile : thisEnemy,
-                x : x,
-                y : y
-            };
-            enemyUID++;
-        };
-
-        this.update = function(id, x, y, tile) {
-            this.list[id].x = x;
-            this.list[id].y = y;
-            this.list[id].tile = tile;
-        };
-
-        this.remove = function(id) {
-            delete this.list[id];
-        };
-    },
-
-    // The Date.now() approach might not allow for level pausing...
-    LevelTimer : function() {
-        this.start = Date.now();
-        this.elapsed_ms = 0;
-        this.elapsed_sec = 0;
-
-        this.paused = 0;
-        this.paused_ms = 0;
-        this.paused_forced = false;
-
-        // True if sec ("Time left") needs to be update updated, false if not
-        this.tick = function() {
-            if (this.paused) { this.pauseTick(); }
-            this.elapsed_ms = Date.now() - this.start - this.paused_ms;
-            chips.g.cam.updateTurn(); // TODO: I feel like this *shouldn't* go here...
-            if (Math.floor(this.elapsed_ms / 1000) > this.elapsed_sec) {
-                this.elapsed_sec = Math.floor(this.elapsed_ms / 1000);
-                return true;
-            }
-            return false;
-        };
-
-        this.forcePause = function() {
-            this.paused = Date.now();
-            chips.vars.requests.add("drawPauseScreen");
-            this.paused_forced = true;
-        };
-
-        this.forceUnpause = function() {
-            // Does not unpause the game, only allows manual unpausing
-            this.paused_forced = false;
-        };
-
-        this.togglePause = function() {
-            if (!this.paused_forced) {
-                if (this.paused) {
-                    this.paused = 0;
-                    chips.vars.requests.add("redrawAll");
-                } else {
-                    this.paused = Date.now();
-                    chips.vars.requests.add("drawPauseScreen");
-                }
-            }
-        };
-
-        this.pauseTick = function() {
-            this.paused_ms += Date.now() - this.paused;
-            this.paused = Date.now();
-        }
-    },
-
     getKeyByValue : function(obj, value, valueField, returnWholeObject) {
         var r = (returnWholeObject || false);
 
@@ -285,13 +223,13 @@ chips.util = {
         try {
             var floorData = chips.data.tiles[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.FLOOR)]];
             var itemData = chips.data.tiles[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.ITEM)]];
-            var enemyData = chips.data.tiles[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.ENEMY)]];
+            var monsterData = chips.data.tiles[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.MONSTER)]];
 
-            var floorCollision, itemCollision, enemyCollision;
+            var floorCollision, itemCollision, monsterCollision;
 
             floorCollision = floorData.collision ? (floorData.collision.all || floorData.collision[entity]) : false;
             itemCollision = itemData.collision ? (itemData.collision.all || itemData.collision[entity]) : false;
-            enemyCollision = enemyData.collision ? (enemyData.collision.all || enemyData.collision[entity]) : false;
+            monsterCollision = monsterData.collision ? (monsterData.collision.all || monsterData.collision[entity]) : false;
 
             if (floorCollision && typeof floorCollision[type] == "function") {
                 floorCollision = floorCollision[type](x, y, d, id);
@@ -305,10 +243,10 @@ chips.util = {
                 itemCollision = false;
             }
 
-            if (enemyCollision && typeof enemyCollision[type] == "function") {
-                enemyCollision = enemyCollision[type](x, y, d, id);
+            if (monsterCollision && typeof monsterCollision[type] == "function") {
+                monsterCollision = monsterCollision[type](x, y, d, id);
             } else {
-                enemyCollision = false;
+                monsterCollision = false;
             }
         } catch (e) {
             console.error(e);
@@ -316,7 +254,7 @@ chips.util = {
             return false;
         }
 
-        return floorCollision || itemCollision || enemyCollision;
+        return floorCollision || itemCollision || monsterCollision;
     }
 };
 

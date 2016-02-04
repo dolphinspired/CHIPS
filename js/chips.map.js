@@ -68,13 +68,13 @@ chips.map = {
             }
         }
 
-        this.inventory = new chips.util.InventoryMap(chips.data.tiles);
-        this.elapsedTime = new chips.util.LevelTimer();
+        this.inventory = new chips.obj.InventoryMap(chips.data.tiles);
+        this.elapsedTime = new chips.obj.Timer();
 
         this.turn = 0;
         this.chipsFacingReset = 0;
-        this.enemies = {};
-        chips.vars.requests.add("generateEnemyMap");
+        this.monsters = {};
+        chips.vars.requests.add("generateMonsterList");
 
         // VALIDATION
 
@@ -96,7 +96,7 @@ chips.map = {
                         this.setChipsFacing(chips.util.dir.SOUTH);
                     }
                 }
-                this.tickAllEnemies();
+                this.tickAllMonsters();
             }
         };
 
@@ -346,18 +346,6 @@ chips.map = {
             return this.clearNextTileLayer(this.chip.x, this.chip.y, direction, layer);
         };
 
-        this.getEnemyFacing = function(x, y) {
-            // TODO: avoid magic numbers
-            return chips.util.getLayerCoord(chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.ENEMY), 4) % 4;
-        };
-
-        this.setEnemyFacing = function(x, y, d, id) {
-            // TODO: Mathematical approach?
-            var dirName = chips.util.getKeyByValue(chips.util.dir, d);
-            var facedTile = chips.g.tiles[this.enemies.list[id].name + "_" + dirName.toUpperCase()];
-            this.setTileLayer(x, y, chips.draw.LAYER.ENEMY, facedTile);
-        };
-
         this.getChipsFacing = function() {
             // TODO: avoid magic numbers
             return chips.util.getLayerCoord(chips.g.cam.getChipsTileLayer(chips.draw.LAYER.CHIP), 6) % 4;
@@ -369,13 +357,16 @@ chips.map = {
             this.setChipsTileLayer(chips.draw.LAYER.CHIP, facedTile);
         };
 
-        this.tickAllEnemies = function() {
-            for (var enemy in this.enemies.list) {
-                if (!this.enemies.list.hasOwnProperty(enemy)) { continue; }
-                var thisEnemy = this.enemies.list[enemy];
-                if (chips.data.tiles[thisEnemy.name].speed && this.turn % chips.data.tiles[thisEnemy.name].speed === 0) {
-                    chips.data.tiles[thisEnemy.name].behavior(
-                        thisEnemy.x, thisEnemy.y, this.getEnemyFacing(thisEnemy.x, thisEnemy.y), enemy);
+        this.tickAllMonsters = function() {
+            var thisMonster, monsters = this.monsters.getAll();
+            for (var monster in monsters) {
+                if (!monsters.hasOwnProperty(monster)) { continue; }
+                thisMonster = monsters[monster];
+                if (chips.data.tiles[thisMonster.name].speed && this.turn % chips.data.tiles[thisMonster.name].speed === 0) {
+                    // Actions and Behaviors are mutually exclusive on any given turn
+                    if (!monsters[monster].performAction()) {
+                        chips.data.tiles[thisMonster.name].behavior(monsters[monster]);
+                    }
                 }
             }
         };

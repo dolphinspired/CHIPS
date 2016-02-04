@@ -29,7 +29,7 @@ chips.data = {
                         return chips.util.detectCollision("player", "barrier", x, y, d);
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
@@ -49,8 +49,8 @@ chips.data = {
                         return chips.util.detectCollision("player", "barrier", x, y, d);
                     }
                 },
-                "enemy" : {
-                    "barrier" : function(x, y, d, id) {
+                "monster" : {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -58,7 +58,7 @@ chips.data = {
         },
         MUD : {
             "type" : "floor",
-            "value" : 5,
+            "value" : 4,
             "collision" : {
                 "player" : {
                     "interactive" : function(x, y, d) {
@@ -66,7 +66,7 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
@@ -76,7 +76,7 @@ chips.data = {
         },
         SOCKET : {
             "type" : "floor",
-            "value" : 6,
+            "value" : 5,
             "collision" : {
                 "player" : {
                     "barrier" : function(x, y, d) {
@@ -88,7 +88,7 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
@@ -97,7 +97,7 @@ chips.data = {
         },
         EXIT : {
             "type" : "floor",
-            "value" : 7,
+            "value" : 70,
             "collision" : {
                 "player" : {
                     "state" : function() {
@@ -105,7 +105,7 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
@@ -281,31 +281,31 @@ chips.data = {
                         return false;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "interactive" : function(x, y, d, id) {
-                        var thisEnemy = chips.g.tLookup[chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.ENEMY)];
+                        var thisMonster = chips.g.tLookup[chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.MONSTER)];
                         var submerges, resists;
 
                         try {
-                            submerges = chips.data.tiles[thisEnemy].properties["submerges"];
+                            submerges = chips.data.tiles[thisMonster].properties["submerges"];
                         } catch(e) {
                             submerges = false;
                         }
 
                         if (submerges) {
-                            chips.events.enemy.kill(x, y, id);
+                            chips.g.cam.monsters.getMonsterById(id).kill();
                             chips.g.cam.setTileLayer(x, y, chips.draw.LAYER.FLOOR, chips.g.tiles.MUD);
                             return true;
                         }
 
                         try {
-                            resists = chips.data.tiles[thisEnemy].resists["water"];
+                            resists = chips.data.tiles[thisMonster].resists["water"];
                         } catch(e) {
                             resists = false;
                         }
 
                         if (!resists) {
-                            chips.events.enemy.kill(x, y, id);
+                            chips.g.cam.monsters.getMonsterById(id).kill();
                             return true;
                         }
 
@@ -335,19 +335,19 @@ chips.data = {
                         return false;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "interactive" : function(x, y, d, id) {
-                        var thisEnemy = chips.g.tLookup[chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.ENEMY)];
+                        var thisMonster = chips.g.tLookup[chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.MONSTER)];
                         var resists;
 
                         try {
-                            resists = chips.data.tiles[thisEnemy].resists["fire"];
+                            resists = chips.data.tiles[thisMonster].resists["fire"];
                         } catch(e) {
                             resists = false;
                         }
 
                         if (!resists) {
-                            chips.events.enemy.kill(x, y, id);
+                            chips.g.cam.monsters.getMonsterById(id).kill();
                             return true;
                         }
                         else return false;
@@ -367,13 +367,13 @@ chips.data = {
             "type" : "floor",
             "value" : 34,
             "collision" : {
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
-                        var thisEnemy = chips.g.tLookup[chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.ENEMY)];
+                        var thisMonster = chips.g.tLookup[chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.MONSTER)];
                         var resists;
 
                         try {
-                            resists = chips.data.tiles[thisEnemy].resists["gravel"];
+                            resists = chips.data.tiles[thisMonster].resists["gravel"];
                         } catch(e) {
                             resists = false;
                         }
@@ -398,6 +398,21 @@ chips.data = {
                 }
             }
         },
+        RED_THIEF : {
+            "type" : "floor",
+            "value" : 45,
+            "collision" : {
+                "player" : {
+                    "interactive" : function(x, y, d) {
+                        chips.g.cam.removeItem("KEY_GREEN", true);
+                        chips.g.cam.removeItem("KEY_BLUE", true);
+                        chips.g.cam.removeItem("KEY_YELLOW", true);
+                        chips.g.cam.removeItem("KEY_RED", true);
+                        return true;
+                    }
+                }
+            }
+        },
         BOMB : {
             "type" : "floor",
             "value" : 36,
@@ -407,9 +422,9 @@ chips.data = {
                         chips.events.chip.kill("Oh dear, you are dead!");
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "interactive" : function(x, y, d, id) {
-                        chips.events.enemy.kill(x, y, id);
+                        chips.g.cam.monsters[id].kill();
                         chips.g.cam.clearTileLayer(x, y, chips.draw.LAYER.FLOOR);
                         return true;
                     }
@@ -447,7 +462,7 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
@@ -490,12 +505,12 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "interactive" : function(x, y, d, id) {
                         var destX, destY;
                         var teleports = chips.g.cam.findTilesByLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.TELEPORT);
 
-                        // TODO: Enemy teleports
+                        // TODO: Monster teleports
 
                         return true;
                     }
@@ -521,28 +536,54 @@ chips.data = {
         },
         SWITCH_SPAWNER : {
             "type" : "floor",
-            "value" : 51
+            "value" : 51,
+            "collision" : {
+                "all" : {
+                    "interactive" : function(x, y, d) {
+
+                    }
+                }
+            }
         },
         SWITCH_TANK : {
             "type" : "floor",
-            "value" : 52
+            "value" : 52,
+            "collision" : {
+                "all" : {
+                    "interactive" : function(x, y, d) {
+                        var tanks = chips.g.cam.monsters.getMonstersByName("TANK");
+                        for (var i = 0; i < tanks.length; i++) {
+                            tanks[i].addPattern("onBlueButtonPress", true);
+                        }
+                    }
+                }
+            }
         },
         SWITCH_BEARTRAP : {
             "type" : "floor",
-            "value" : 53
+            "value" : 53,
+            "collision" : {
+                "all" : {
+                    "interactive" : function(x, y, d) {
+
+                    }
+                }
+            }
         },
         INVISIBLE_WALL : {
             "type" : "floor",
-            "value" : 54,
+            "value" : 6,
             "collision" : {
                 "all" : {
-                    "barrier" : function(x, y, d) { return true; }
+                    "barrier" : function(x, y, d) {
+                        return true;
+                    }
                 }
             }
         },
         INVISIBLE_WALL_SHOW : {
             "type" : "floor",
-            "value" : 55,
+            "value" : 7,
             "collision" : {
                 "player" : {
                     "barrier" : function(x, y, d) {
@@ -550,7 +591,7 @@ chips.data = {
                         return chips.util.detectCollision("player", "barrier", x, y, d);
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
@@ -571,7 +612,7 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
@@ -592,7 +633,7 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
@@ -613,7 +654,7 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
@@ -634,7 +675,7 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
@@ -643,7 +684,7 @@ chips.data = {
         },
         TOGGLE_CLOSED : {
             "type" : "floor",
-            "value" : 70,
+            "value" : 64,
             "collision" : {
                 "all" : {
                     "barrier" : function(x, y, d) {
@@ -654,15 +695,15 @@ chips.data = {
         },
         TOGGLE_OPEN : {
             "type" : "floor",
-            "value" : 71
+            "value" : 65
         },
         EXIT_ANIMATION_2 : {
             "type" : "floor",
-            "value" : 76
+            "value" : 71
         },
         EXIT_ANIMATION_3 : {
             "type" : "floor",
-            "value" : 77
+            "value" : 72
         },
 
         ITEM_CHIP : {
@@ -676,7 +717,7 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
@@ -813,7 +854,7 @@ chips.data = {
         },
 
         TANK : {
-            "type" : "enemy",
+            "type" : "monster",
             "value" : {
                 "north" : 40000,
                 "west" : 50000,
@@ -827,20 +868,35 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
             },
-            "behavior" : function(x, y, d, id) {
-                // move forward until a barrier collision, then stop
-                return chips.events.enemy.move(x, y, d, id);
+            "behavior" : function(monster) {
+                // No idle behavior, it only moves by Actions
+            },
+            "triggers" : {
+                "patterns" : {
+                    "onBlueButtonPress" : ["turnLeft", 0, "moveLeft", 0, "moveForward", -1]
+                },
+                "actions" : {
+                    "turnLeft" : function(monster) {
+                        return monster.turn(chips.util.dir.left(monster.facing()));
+                    },
+                    "moveLeft" : function(monster) {
+                        return monster.move(chips.util.dir.left(monster.facing()));
+                    },
+                    "moveForward" : function(monster) {
+                        return monster.move(monster.facing());
+                    }
+                }
             },
             "speed" : 2
         },
         BUG : {
-            "type" : "enemy",
+            "type" : "monster",
             "value" : {
                 "north" : 100000,
                 "west" : 110000,
@@ -854,21 +910,22 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
             },
-            "behavior" : function(x, y, d, id) {
+            "behavior" : function(monster) {
                 // follow the barrier to its left, else circle counter-clockwise
-                if (chips.events.enemy.move(x, y, chips.util.dir.left(d), id)) {
+                var d = monster.facing();
+                if (monster.move(chips.util.dir.left(d))) {
                     return true;
-                } if (chips.events.enemy.move(x, y, d, id)) {
+                } if (monster.move(d)) {
                     return true;
-                } if (chips.events.enemy.move(x, y, chips.util.dir.right(d), id)) {
+                } if (monster.move(chips.util.dir.right(d))) {
                     return true;
-                } if (chips.events.enemy.move(x, y, chips.util.dir.back(d), id)) {
+                } if (monster.move(chips.util.dir.back(d))) {
                     return true;
                 }
                 return false;
@@ -876,7 +933,7 @@ chips.data = {
             "speed" : 2
         },
         PARAMECIUM : {
-            "type" : "enemy",
+            "type" : "monster",
             "value" : {
                 "base" : 140000,
                 "north" : 140000,
@@ -891,21 +948,22 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
             },
-            "behavior" : function(x, y, d, id) {
+            "behavior" : function(monster) {
                 // follow the barrier to its right, else circle clockwise
-                if (chips.events.enemy.move(x, y, chips.util.dir.right(d), id)) {
+                var d = monster.facing();
+                if (monster.move(chips.util.dir.right(d))) {
                     return true;
-                } if (chips.events.enemy.move(x, y, d, id)) {
+                } if (monster.move(d)) {
                     return true;
-                } if (chips.events.enemy.move(x, y, chips.util.dir.left(d), id)) {
+                } if (monster.move(chips.util.dir.left(d))) {
                     return true;
-                } if (chips.events.enemy.move(x, y, chips.util.dir.back(d), id)) {
+                } if (monster.move(chips.util.dir.back(d))) {
                     return true;
                 }
                 return false;
@@ -913,7 +971,7 @@ chips.data = {
             "speed" : 2
         },
         GLIDER : {
-            "type" : "enemy",
+            "type" : "monster",
             "value" : {
                 "base" : 200000,
                 "north" : 200000,
@@ -928,7 +986,7 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
@@ -937,15 +995,16 @@ chips.data = {
             "resists" : {
                 "water" : true
             },
-            "behavior" : function(x, y, d, id) {
+            "behavior" : function(monster) {
                 // turn left on a barrier collision, else right, else reverse
-                if (chips.events.enemy.move(x, y, d, id)) {
+                var d = monster.facing();
+                if (monster.move(d)) {
                     return true;
-                } if (chips.events.enemy.move(x, y, chips.util.dir.left(d), id)) {
+                } if (monster.move(chips.util.dir.left(d))) {
                     return true;
-                } if (chips.events.enemy.move(x, y, chips.util.dir.right(d), id)) {
+                } if (monster.move(chips.util.dir.right(d))) {
                     return true;
-                } if (chips.events.enemy.move(x, y, chips.util.dir.back(d), id)) {
+                } if (monster.move(chips.util.dir.back(d))) {
                     return true;
                 }
                 return false;
@@ -953,7 +1012,7 @@ chips.data = {
             "speed" : 2
         },
         FIREBALL : {
-            "type" : "enemy",
+            "type" : "monster",
             "value" : {
                 "base" : 240000,
                 "north" : 240000,
@@ -971,21 +1030,22 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
             },
-            "behavior" : function(x, y, d, id) {
+            "behavior" : function(monster) {
                 // turn right on a barrier collision, else left, else reverse
-                if (chips.events.enemy.move(x, y, d, id)) {
+                var d = monster.facing();
+                if (monster.move(d)) {
                     return true;
-                } if (chips.events.enemy.move(x, y, chips.util.dir.right(d), id)) {
+                } if (monster.move(chips.util.dir.right(d))) {
                     return true;
-                } if (chips.events.enemy.move(x, y, chips.util.dir.left(d), id)) {
+                } if (monster.move(chips.util.dir.left(d))) {
                     return true;
-                } if (chips.events.enemy.move(x, y, chips.util.dir.back(d), id)) {
+                } if (monster.move(chips.util.dir.back(d))) {
                     return true;
                 }
                 return false;
@@ -993,7 +1053,7 @@ chips.data = {
             "speed" : 2
         },
         BALL : {
-            "type" : "enemy",
+            "type" : "monster",
             "value" : {
                 "base" : 300000,
                 "north" : 300000,
@@ -1008,17 +1068,18 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
             },
-            "behavior" : function(x, y, d, id) {
+            "behavior" : function(monster) {
                 // reverse direction on a barrier collision
-                if (chips.events.enemy.move(x, y, d, id)) {
+                var d = monster.facing();
+                if (monster.move(d)) {
                     return true;
-                } if (chips.events.enemy.move(x, y, chips.util.dir.back(d), id)) {
+                } if (monster.move(chips.util.dir.back(d))) {
                     return true;
                 }
                 return false;
@@ -1026,7 +1087,7 @@ chips.data = {
             "speed" : 2
         },
         WALKER : {
-            "type" : "enemy",
+            "type" : "monster",
             "value" : {
                 "base" : 340000,
                 "north" : 340000,
@@ -1041,21 +1102,22 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
             },
-            "behavior" : function(x, y, d, id) {
+            "behavior" : function(monster) {
                 // move forward until barrier collision, then turn in a random direction
-                if (chips.events.enemy.move(x, y, d, id)) {
+                var d = monster.facing();
+                if (monster.move(d)) {
                     return true;
                 } else {
                     // Get all remaining dirs, randomly shuffled, and try to move in each dir
                     var remaining = chips.util.dir.shuffle(d);
                     for (var i = 0; i < remaining.length; i++) {
-                        if (chips.events.enemy.move(x, y, remaining[i], id)) {
+                        if (monster.move(remaining[i])) {
                             return true;
                         }
                     }
@@ -1065,7 +1127,7 @@ chips.data = {
             "speed" : 2
         },
         TEETH : {
-            "type" : "enemy",
+            "type" : "monster",
             "value" : {
                 "base" : 400000,
                 "north" : 400000,
@@ -1080,19 +1142,30 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
             },
-            "behavior" : function(x, y, d, id) {
+            "behavior" : function(monster) {
                 // walks toward Chip
+                var priority = chips.util.dir.approach(monster.x, monster.y, chips.g.cam.chip.x, chips.g.cam.chip.y, "vertical");
+
+                for (var i = 0; i < priority.length; i++) {
+                    if (monster.move(priority[i])) {
+                        return true;
+                    }
+                }
+
+                monster.turn(priority[0]);
+
+                return false;
             },
             "speed" : 4
         },
         BLOB : {
-            "type" : "enemy",
+            "type" : "monster",
             "value" : {
                 "base" : 440000,
                 "north" : 440000,
@@ -1107,18 +1180,18 @@ chips.data = {
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
             },
-            "behavior" : function(x, y, d, id) {
+            "behavior" : function(monster) {
                 // moves in a random direction
                 var random = chips.util.dir.shuffle();
 
                 for (var i = 0; i < random.length; i++) {
-                    if (chips.events.enemy.move(x, y, random[i], id)) {
+                    if (monster.move(random[i])) {
                         return true;
                     }
                 }
@@ -1127,7 +1200,7 @@ chips.data = {
             "speed" : 4
         },
         BLOCK : {
-            "type" : "enemy",
+            "type" : "monster",
             "value" : {
                 "base" : 500000,
                 "north" : 500000,
@@ -1146,25 +1219,25 @@ chips.data = {
                 "player" : {
                     "barrier" : function(x, y, d) {
                         // TODO: collision object to iterate over all types of collision?
-                        var locking = chips.util.detectCollision("enemy", "locking", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
-                        var barrier = chips.util.detectCollision("enemy", "barrier", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
-                        var interactive = chips.util.detectCollision("enemy", "interactive", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
+                        var locking = chips.util.detectCollision("monster", "locking", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
+                        var barrier = chips.util.detectCollision("monster", "barrier", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
+                        var interactive = chips.util.detectCollision("monster", "interactive", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
                         return locking || barrier;
                     },
                     "interactive" : function(x, y, d) {
-                        chips.g.cam.clearTileLayer(x, y, chips.draw.LAYER.ENEMY);
-                        chips.g.cam.setTileLayer(x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], chips.draw.LAYER.ENEMY, chips.g.tiles.BLOCK_BASE);
-                        chips.util.detectCollision("enemy", "interactive", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
+                        chips.g.cam.clearTileLayer(x, y, chips.draw.LAYER.MONSTER);
+                        chips.g.cam.setTileLayer(x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], chips.draw.LAYER.MONSTER, chips.g.tiles.BLOCK_BASE);
+                        chips.util.detectCollision("monster", "interactive", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
                         return true;
                     }
                 },
-                "enemy" : {
+                "monster" : {
                     "barrier" : function(x, y, d, id) {
                         return true;
                     }
                 }
             },
-            "behavior" : function(x, y, d, id) {
+            "behavior" : function(monster) {
                 // does not move unless chip pushes it, kills Chip if block lands on Chip
                 // this behavior should remain empty
             },
@@ -1182,7 +1255,7 @@ chips.data = {
                 "east" : 13000000
             },
             "collision" : {
-                "enemy" : {
+                "monster" : {
                     "interactive" : function(x, y, d, id) {
                         chips.events.chip.kill();
                     }
@@ -1201,7 +1274,7 @@ chips.data = {
                 "east" : 17000000
             },
             "collision" : {
-                "enemy" : {
+                "monster" : {
                     "interactive" : function(x, y, d, id) {
                         chips.events.chip.kill();
                     }
@@ -1220,7 +1293,7 @@ chips.data = {
                 "east" : 23000000
             },
             "collision" : {
-                "enemy" : {
+                "monster" : {
                     "interactive" : function(x, y, d, id) {
                         chips.events.chip.kill();
                     }
