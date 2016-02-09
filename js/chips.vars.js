@@ -216,7 +216,7 @@ chips.vars = {
                 chips.events.init();
                 this.reset();
             });
-            this["generateMonsterList"] = new this.GameRequest(function() {
+            this["syncMonsterList"] = new this.GameRequest(function() {
                 chips.g.cam.monsters = {};
                 chips.g.cam.monsters = new chips.obj.MonsterList();
                 chips.g.cam.monsters.sync();
@@ -229,7 +229,7 @@ chips.vars = {
             this["startMovingChip"] = new this.GameRequest(function() {
                 if (!chips.g.cam.elapsedTime.paused) {
                     if (chips.g.moveStreakStart < 0) { // First move in this streak
-                        chips.events.chip.move(this.args[0]);
+                        chips.g.cam.player.move(this.args[0]);
                         chips.g.moveStreakStart = chips.g.cam.turn;
                         chips.g.lastMoveTurn = chips.g.moveStreakStart;
                         chips.g.oddStep = chips.g.moveStreakStart % 2; // 0 (false) if even, 1 (true) if odd
@@ -237,7 +237,7 @@ chips.vars = {
                         var moveTurnDiff = chips.g.cam.turn - chips.g.lastMoveTurn;
                         var thisChip = chips.g.tLookup[chips.g.cam.getChipsTileLayer(chips.draw.LAYER.CHIP)];
                         if (moveTurnDiff >= chips.data.tiles[thisChip].speed) {
-                            chips.events.chip.move(this.args[0]);
+                            chips.g.cam.player.move(this.args[0]);
                             chips.g.lastMoveTurn = chips.g.cam.turn;
                         }
                     }

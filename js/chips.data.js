@@ -13,7 +13,7 @@ chips.data = {
             "value" : 1,
             "collision" : {
                 "all" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(entity) {
                         return true;
                     }
                 }
@@ -24,13 +24,13 @@ chips.data = {
             "value" : 2,
             "collision" : {
                 "player" : {
-                    "barrier" : function(x, y, d) {
-                        chips.g.cam.setChipsNextTile(d, chips.g.tiles.FLOOR);
-                        return chips.util.detectCollision("player", "barrier", x, y, d);
+                    "barrier" : function(player) {
+                        chips.g.cam.setChipsNextTile(player.facing(), chips.g.tiles.FLOOR);
+                        return chips.util.detectCollision(player, "barrier");
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -44,9 +44,9 @@ chips.data = {
             "value" : 3,
             "collision" : {
                 "player" : {
-                    "barrier" : function(x, y, d) {
-                        chips.g.cam.setChipsNextTile(d, chips.g.tiles.WALL);
-                        return chips.util.detectCollision("player", "barrier", x, y, d);
+                    "barrier" : function(player) {
+                        chips.g.cam.setChipsNextTileLayer(player.facing(), chips.draw.LAYER.FLOOR, chips.g.tiles.WALL);
+                        return chips.util.detectCollision(player, "barrier");
                     }
                 },
                 "monster" : {
@@ -61,13 +61,13 @@ chips.data = {
             "value" : 4,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(player) {
                         chips.g.cam.setChipsTileLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.FLOOR);
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -79,17 +79,17 @@ chips.data = {
             "value" : 5,
             "collision" : {
                 "player" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(player) {
                         return chips.g.cam.chipsLeft > 0;
                     },
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(player) {
                         // If you're standing on this tile, you already had enough chips (same concept as locks)
                         chips.g.cam.setChipsTileLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.FLOOR);
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -100,13 +100,13 @@ chips.data = {
             "value" : 70,
             "collision" : {
                 "player" : {
-                    "state" : function() {
-                        chips.events.chip.win();
+                    "state" : function(player) {
+                        chips.g.cam.win();
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -117,11 +117,11 @@ chips.data = {
             "value" : 10,
             "collision" : {
                 "all" : {
-                    "locking" : function(x, y, d) {
-                        return d === chips.util.dir.NORTH;
+                    "locking" : function(entity) {
+                        return entity.facing() === chips.util.dir.NORTH;
                     },
-                    "barrier" : function(x, y, d) {
-                        return d === chips.util.dir.SOUTH;
+                    "barrier" : function(entity) {
+                        return entity.facing() === chips.util.dir.SOUTH;
                     }
                 }
             }
@@ -131,11 +131,11 @@ chips.data = {
             "value" : 11,
             "collision" : {
                 "all" : {
-                    "locking" : function(x, y, d) {
-                        return d === chips.util.dir.WEST;
+                    "locking" : function(entity) {
+                        return entity.facing() === chips.util.dir.WEST;
                     },
-                    "barrier" : function(x, y, d) {
-                        return d === chips.util.dir.EAST;
+                    "barrier" : function(entity) {
+                        return entity.facing() === chips.util.dir.EAST;
                     }
                 }
             }
@@ -145,11 +145,11 @@ chips.data = {
             "value" : 12,
             "collision" : {
                 "all" : {
-                    "locking" : function(x, y, d) {
-                        return d === chips.util.dir.SOUTH;
+                    "locking" : function(entity) {
+                        return entity.facing() === chips.util.dir.SOUTH;
                     },
-                    "barrier" : function(x, y, d) {
-                        return d === chips.util.dir.NORTH;
+                    "barrier" : function(entity) {
+                        return entity.facing() === chips.util.dir.NORTH;
                     }
                 }
             }
@@ -159,11 +159,11 @@ chips.data = {
             "value" : 13,
             "collision" : {
                 "all" : {
-                    "locking" : function(x, y, d) {
-                        return d === chips.util.dir.EAST;
+                    "locking" : function(entity) {
+                        return entity.facing() === chips.util.dir.EAST;
                     },
-                    "barrier" : function(x, y, d) {
-                        return d === chips.util.dir.WEST;
+                    "barrier" : function(entity) {
+                        return entity.facing() === chips.util.dir.WEST;
                     }
                 }
             }
@@ -173,11 +173,11 @@ chips.data = {
             "value" : 14,
             "collision" : {
                 "all" : {
-                    "locking" : function(x, y, d) {
-                        return d === chips.util.dir.NORTH || d === chips.util.dir.EAST
+                    "locking" : function(entity) {
+                        return entity.facing() === chips.util.dir.NORTH || entity.facing() === chips.util.dir.EAST
                     },
-                    "barrier" : function(x, y, d) {
-                        return d === chips.util.dir.SOUTH || d === chips.util.dir.WEST
+                    "barrier" : function(entity) {
+                        return entity.facing() === chips.util.dir.SOUTH || entity.facing() === chips.util.dir.WEST
                     }
                 }
             }
@@ -187,11 +187,11 @@ chips.data = {
             "value" : 15,
             "collision" : {
                 "all" : {
-                    "locking" : function(x, y, d) {
-                        return d === chips.util.dir.NORTH || d === chips.util.dir.WEST;
+                    "locking" : function(entity) {
+                        return entity.facing() === chips.util.dir.NORTH || entity.facing() === chips.util.dir.WEST;
                     },
-                    "barrier" : function(x, y, d) {
-                        return d === chips.util.dir.SOUTH || d === chips.util.dir.EAST;
+                    "barrier" : function(entity) {
+                        return entity.facing() === chips.util.dir.SOUTH || entity.facing() === chips.util.dir.EAST;
                     }
                 }
             }
@@ -201,11 +201,11 @@ chips.data = {
             "value" : 16,
             "collision" : {
                 "all" : {
-                    "locking" : function(x, y, d) {
-                        return d === chips.util.dir.SOUTH || d === chips.util.dir.WEST;
+                    "locking" : function(entity) {
+                        return entity.facing() === chips.util.dir.SOUTH || entity.facing() === chips.util.dir.WEST;
                     },
-                    "barrier" : function(x, y, d) {
-                        return d === chips.util.dir.NORTH || d === chips.util.dir.EAST;
+                    "barrier" : function(entity) {
+                        return entity.facing() === chips.util.dir.NORTH || entity.facing() === chips.util.dir.EAST;
                     }
                 }
             }
@@ -215,11 +215,11 @@ chips.data = {
             "value" : 17,
             "collision" : {
                 "all" : {
-                    "locking" : function(x, y, d) {
-                        return d === chips.util.dir.SOUTH || d === chips.util.dir.EAST;
+                    "locking" : function(entity) {
+                        return entity.facing() === chips.util.dir.SOUTH || entity.facing() === chips.util.dir.EAST;
                     },
-                    "barrier" : function(x, y, d) {
-                        return d === chips.util.dir.NORTH || d === chips.util.dir.WEST;
+                    "barrier" : function(entity) {
+                        return entity.facing() === chips.util.dir.NORTH || entity.facing() === chips.util.dir.WEST;
                     }
                 }
             }
@@ -261,51 +261,53 @@ chips.data = {
             "value" : 30,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
+                    "unload" : function(player) {
+                        player.swim(false);
+                        return true;
+                    },
+                    "interactive" : function(player) {
                         var l = chips.draw.LAYER.CHIP;
 
-                        if (chips.g.cam.inventory["FLIPPER"].quantity > 0) {
-                            // TODO: Store the "SWIM_DIFF" in a variable somewhere
-                            chips.g.cam.setChipsTileLayer(l, (chips.g.cam.getChipsTileLayer(l) + 10000000));
+                        if (player.inventory.items["FLIPPER"].quantity > 0) {
+                            player.swim(true);
                             return true;
                         } else {
                             chips.g.cam.setChipsTileLayer(l, chips.g.tiles.CHIP_SPLASH);
                             return true;
                         }
                     },
-                    "state" : function() {
-                        if (chips.g.cam.inventory["FLIPPER"].quantity === 0) {
-                            chips.events.chip.kill("Chip can't swim without flippers!");
+                    "state" : function(player) {
+                        if (player.inventory.items["FLIPPER"].quantity === 0) {
+                            player.kill("Chip can't swim without flippers!");
                             return true;
                         }
                         return false;
                     }
                 },
                 "monster" : {
-                    "interactive" : function(x, y, d, id) {
-                        var thisMonster = chips.g.tLookup[chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.MONSTER)];
+                    "interactive" : function(monster) {
                         var submerges, resists;
 
                         try {
-                            submerges = chips.data.tiles[thisMonster].properties["submerges"];
+                            submerges = chips.data.tiles[monster.name].properties["submerges"];
                         } catch(e) {
                             submerges = false;
                         }
 
                         if (submerges) {
-                            chips.g.cam.monsters.getMonsterById(id).kill();
-                            chips.g.cam.setTileLayer(x, y, chips.draw.LAYER.FLOOR, chips.g.tiles.MUD);
+                            chips.g.cam.setTileLayer(monster.x, monster.y, chips.draw.LAYER.FLOOR, chips.g.tiles.MUD);
+                            monster.kill();
                             return true;
                         }
 
                         try {
-                            resists = chips.data.tiles[thisMonster].resists["water"];
+                            resists = chips.data.tiles[monster.name].resists["water"];
                         } catch(e) {
                             resists = false;
                         }
 
                         if (!resists) {
-                            chips.g.cam.monsters.getMonsterById(id).kill();
+                            monster.kill();
                             return true;
                         }
 
@@ -319,35 +321,34 @@ chips.data = {
             "value" : 31,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
-                        if (chips.g.cam.inventory["BOOT"].quantity === 0) {
+                    "interactive" : function(player) {
+                        if (player.inventory.items["BOOT"].quantity === 0) {
                             chips.g.cam.setChipsTileLayer(chips.draw.LAYER.CHIP, chips.g.tiles.CHIP_BURNT);
                             return true;
                         } else {
                             return false;
                         }
                     },
-                    "state" : function() {
-                        if (chips.g.cam.inventory["BOOT"].quantity === 0) {
-                            chips.events.chip.kill("Chip can't walk on fire without boots!");
+                    "state" : function(player) {
+                        if (player.inventory.items["BOOT"].quantity === 0) {
+                            player.kill("Chip can't walk on fire without boots!");
                             return true;
                         }
                         return false;
                     }
                 },
                 "monster" : {
-                    "interactive" : function(x, y, d, id) {
-                        var thisMonster = chips.g.tLookup[chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.MONSTER)];
+                    "interactive" : function(monster) {
                         var resists;
 
                         try {
-                            resists = chips.data.tiles[thisMonster].resists["fire"];
+                            resists = chips.data.tiles[monster.name].resists["fire"];
                         } catch(e) {
                             resists = false;
                         }
 
                         if (!resists) {
-                            chips.g.cam.monsters.getMonsterById(id).kill();
+                            monster.kill();
                             return true;
                         }
                         else return false;
@@ -368,12 +369,11 @@ chips.data = {
             "value" : 34,
             "collision" : {
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
-                        var thisMonster = chips.g.tLookup[chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.MONSTER)];
+                    "barrier" : function(monster) {
                         var resists;
 
                         try {
-                            resists = chips.data.tiles[thisMonster].resists["gravel"];
+                            resists = chips.data.tiles[monster.name].resists["gravel"];
                         } catch(e) {
                             resists = false;
                         }
@@ -388,11 +388,11 @@ chips.data = {
             "value" : 35,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.removeItem("FLIPPER", true);
-                        chips.g.cam.removeItem("SUCTIONSHOES", true);
-                        chips.g.cam.removeItem("BOOT", true);
-                        chips.g.cam.removeItem("SKATE", true);
+                    "interactive" : function(player) {
+                        player.inventory.removeItem("FLIPPER", true);
+                        player.inventory.removeItem("SUCTIONSHOES", true);
+                        player.inventory.removeItem("BOOT", true);
+                        player.inventory.removeItem("SKATE", true);
                         return true;
                     }
                 }
@@ -403,11 +403,11 @@ chips.data = {
             "value" : 45,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.removeItem("KEY_GREEN", true);
-                        chips.g.cam.removeItem("KEY_BLUE", true);
-                        chips.g.cam.removeItem("KEY_YELLOW", true);
-                        chips.g.cam.removeItem("KEY_RED", true);
+                    "interactive" : function(player) {
+                        player.inventory.removeItem("KEY_GREEN", true);
+                        player.inventory.removeItem("KEY_BLUE", true);
+                        player.inventory.removeItem("KEY_YELLOW", true);
+                        player.inventory.removeItem("KEY_RED", true);
                         return true;
                     }
                 }
@@ -418,14 +418,14 @@ chips.data = {
             "value" : 36,
             "collision" : {
                 "player" : {
-                    "state" : function() {
-                        chips.events.chip.kill("Oh dear, you are dead!");
+                    "state" : function(player) {
+                        player.kill();
                     }
                 },
                 "monster" : {
-                    "interactive" : function(x, y, d, id) {
-                        chips.g.cam.monsters[id].kill();
-                        chips.g.cam.clearTileLayer(x, y, chips.draw.LAYER.FLOOR);
+                    "interactive" : function(monster) {
+                        chips.g.cam.clearTileLayer(monster.x, monster.y, chips.draw.LAYER.FLOOR);
+                        monster.kill();
                         return true;
                     }
                 }
@@ -440,12 +440,12 @@ chips.data = {
             "value" : 40,
             "collision" : {
                 "player" : {
-                    "unload" : function(x, y, d) {
+                    "unload" : function(player) {
                         chips.vars.requests.add("toggleHint", [0]);
                         chips.vars.requests.add("redrawAll"); // Not sure why, but this is necessary
                         return true;
                     },
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(player) {
                         chips.vars.requests.add("toggleHint", [1]);
                         return true;
                     }
@@ -457,13 +457,13 @@ chips.data = {
             "value" : 41,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(player) {
                         chips.g.cam.setChipsTileLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.WALL);
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -479,34 +479,31 @@ chips.data = {
                 // is checked. If no teleports are valid, the teleport acts as a non-directional ice tile.
                 // (without the effect of the ice skate, of course)
                 "player" : {
-                    "interactive": function (x, y, d) {
-                        var destX, destY;
+                    "interactive": function (player) {
+                        var destX, destY, d = player.facing();
                         var teleports = chips.g.cam.findTilesByLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.TELEPORT);
 
                         for (var i = 0; i < teleports.length; i++) {
                             // If this teleport is the tile that Chip is currently on
-                            if (teleports[i][0] === chips.g.cam.chip.x && teleports[i][1] === chips.g.cam.chip.y) {
+                            if (teleports[i][0] === player.x && teleports[i][1] === player.y) {
                                 if (!destX || !destY) continue; // Destination not yet set (first iteration), keep trying
                                 else break;
                             } else {
-                                if (!chips.util.detectCollision("player", "barrier", teleports[i][0], teleports[i][1], d)) {
-                                    destX = teleports[i][0];
-                                    destY = teleports[i][1];
+                                if (!chips.util.detectCollision(player, "barrier", d, teleports[i][0], teleports[i][1])) {
+                                    destX = teleports[i][0] + chips.util.dir.mod(d)[0];
+                                    destY = teleports[i][1] + chips.util.dir.mod(d)[1];
                                 }
                             }
                         }
                         // TODO: this needs to be treated like a slide
                         if (destX && destY) {
-                            chips.g.cam.clearChipsTileLayer(chips.draw.LAYER.CHIP);
-                            chips.g.cam.chip.x = destX;
-                            chips.g.cam.chip.y = destY;
-                            chips.events.chip.move(d);
+                            player.teleport(destX, destY);
                         }
                         return true;
                     }
                 },
                 "monster" : {
-                    "interactive" : function(x, y, d, id) {
+                    "interactive" : function(monster) {
                         var destX, destY;
                         var teleports = chips.g.cam.findTilesByLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.TELEPORT);
 
@@ -526,8 +523,19 @@ chips.data = {
             "value" : 50,
             "collision" : {
                 "all" : {
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.toggleFloors();
+                    "interactive" : function(entity) {
+                        var allOpenToggles = chips.g.cam.findTilesByLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.TOGGLE_OPEN);
+                        var allClosedToggles = chips.g.cam.findTilesByLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.TOGGLE_CLOSED);
+                        var i;
+
+                        for (i = 0; i < allOpenToggles.length; i++) {
+                            chips.g.cam.setTileLayer(allOpenToggles[i][0], allOpenToggles[i][1], chips.draw.LAYER.FLOOR, chips.g.tiles.TOGGLE_CLOSED);
+                        }
+
+                        for (i = 0; i < allClosedToggles.length; i++) {
+                            chips.g.cam.setTileLayer(allClosedToggles[i][0], allClosedToggles[i][1], chips.draw.LAYER.FLOOR, chips.g.tiles.TOGGLE_OPEN);
+                        }
+
                         return true;
                     }
                 }
@@ -539,7 +547,7 @@ chips.data = {
             "value" : 51,
             "collision" : {
                 "all" : {
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(entity) {
 
                     }
                 }
@@ -550,7 +558,7 @@ chips.data = {
             "value" : 52,
             "collision" : {
                 "all" : {
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(entity) {
                         var tanks = chips.g.cam.monsters.getMonstersByName("TANK");
                         for (var i = 0; i < tanks.length; i++) {
                             tanks[i].addPattern("onBlueButtonPress", true);
@@ -564,7 +572,7 @@ chips.data = {
             "value" : 53,
             "collision" : {
                 "all" : {
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(entity) {
 
                     }
                 }
@@ -575,7 +583,7 @@ chips.data = {
             "value" : 6,
             "collision" : {
                 "all" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(entity) {
                         return true;
                     }
                 }
@@ -586,13 +594,13 @@ chips.data = {
             "value" : 7,
             "collision" : {
                 "player" : {
-                    "barrier" : function(x, y, d) {
-                        chips.g.cam.setNextTileLayer(x, y, d, chips.draw.LAYER.FLOOR, chips.g.tiles.WALL);
-                        return chips.util.detectCollision("player", "barrier", x, y, d);
+                    "barrier" : function(player) {
+                        chips.g.cam.setChipsNextTileLayer(player.facing(), chips.draw.LAYER.FLOOR, chips.g.tiles.WALL);
+                        return chips.util.detectCollision(player, "barrier");
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -603,17 +611,17 @@ chips.data = {
             "value" : 60,
             "collision" : {
                 "player" : {
-                    "barrier" : function(x, y, d) {
-                        return !chips.g.cam.inventory["KEY_BLUE"].quantity;
+                    "barrier" : function(player) {
+                        return !player.inventory.items["KEY_BLUE"].quantity;
                     },
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.removeItem("KEY_BLUE");
+                    "interactive" : function(player) {
+                        player.inventory.removeItem("KEY_BLUE");
                         chips.g.cam.setChipsTileLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.FLOOR);
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -624,17 +632,17 @@ chips.data = {
             "value" : 61,
             "collision" : {
                 "player" : {
-                    "barrier" : function(x, y, d) {
-                        return !chips.g.cam.inventory["KEY_RED"].quantity;
+                    "barrier" : function(player) {
+                        return !player.inventory.items["KEY_RED"].quantity;
                     },
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.removeItem("KEY_RED");
+                    "interactive" : function(player) {
+                        player.inventory.removeItem("KEY_RED");
                         chips.g.cam.setChipsTileLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.FLOOR);
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -645,17 +653,17 @@ chips.data = {
             "value" : 62,
             "collision" : {
                 "player" : {
-                    "barrier" : function(x, y, d) {
-                        return !chips.g.cam.inventory["KEY_YELLOW"].quantity;
+                    "barrier" : function(player) {
+                        return !player.inventory.items["KEY_YELLOW"].quantity;
                     },
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.removeItem("KEY_YELLOW");
+                    "interactive" : function(player) {
+                        player.inventory.removeItem("KEY_YELLOW");
                         chips.g.cam.setChipsTileLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.FLOOR);
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -666,17 +674,17 @@ chips.data = {
             "value" : 63,
             "collision" : {
                 "player" : {
-                    "barrier" : function(x, y, d) {
-                        return !chips.g.cam.inventory["KEY_GREEN"].quantity;
+                    "barrier" : function(player) {
+                        return !player.inventory.items["KEY_GREEN"].quantity;
                     },
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(player) {
                         // Green keys are not consumed on unlock - no item to remove
                         chips.g.cam.setChipsTileLayer(chips.draw.LAYER.FLOOR, chips.g.tiles.FLOOR);
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -687,7 +695,7 @@ chips.data = {
             "value" : 64,
             "collision" : {
                 "all" : {
-                    "barrier" : function(x, y, d) {
+                    "barrier" : function(entity) {
                         return true;
                     }
                 }
@@ -711,14 +719,14 @@ chips.data = {
             "value" : 100,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
+                    "interactive" : function(player) {
                         chips.g.cam.decrementChipsLeft();
                         chips.g.cam.clearChipsTileLayer(chips.draw.LAYER.ITEM);
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -729,8 +737,8 @@ chips.data = {
             "value" : 1000,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.addItem("FLIPPER");
+                    "interactive" : function(player) {
+                        player.inventory.addItem("FLIPPER");
                         chips.g.cam.clearChipsTileLayer(chips.draw.LAYER.ITEM);
                         return true;
                     }
@@ -745,8 +753,8 @@ chips.data = {
             "value" : 1100,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.addItem("BOOT");
+                    "interactive" : function(player) {
+                        player.inventory.addItem("BOOT");
                         chips.g.cam.clearChipsTileLayer(chips.draw.LAYER.ITEM);
                         return true;
                     }
@@ -761,8 +769,8 @@ chips.data = {
             "value" : 1200,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.addItem("SKATE");
+                    "interactive" : function(player) {
+                        player.inventory.addItem("SKATE");
                         chips.g.cam.clearChipsTileLayer(chips.draw.LAYER.ITEM);
                         return true;
                     }
@@ -777,8 +785,8 @@ chips.data = {
             "value" : 1300,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.addItem("SUCTIONSHOES");
+                    "interactive" : function(player) {
+                        player.inventory.addItem("SUCTIONSHOES");
                         chips.g.cam.clearChipsTileLayer(chips.draw.LAYER.ITEM);
                         return true;
                     }
@@ -793,8 +801,8 @@ chips.data = {
             "value" : 6000,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.addItem("KEY_BLUE");
+                    "interactive" : function(player) {
+                        player.inventory.addItem("KEY_BLUE");
                         chips.g.cam.clearChipsTileLayer(chips.draw.LAYER.ITEM);
                         return true;
                     }
@@ -809,8 +817,8 @@ chips.data = {
             "value" : 6100,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.addItem("KEY_RED");
+                    "interactive" : function(player) {
+                        player.inventory.addItem("KEY_RED");
                         chips.g.cam.clearChipsTileLayer(chips.draw.LAYER.ITEM);
                         return true;
                     }
@@ -825,8 +833,8 @@ chips.data = {
             "value" : 6200,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.addItem("KEY_YELLOW");
+                    "interactive" : function(player) {
+                        player.inventory.addItem("KEY_YELLOW");
                         chips.g.cam.clearChipsTileLayer(chips.draw.LAYER.ITEM);
                         return true;
                     }
@@ -841,8 +849,8 @@ chips.data = {
             "value" : 6300,
             "collision" : {
                 "player" : {
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.addItem("KEY_GREEN");
+                    "interactive" : function(player) {
+                        player.inventory.addItem("KEY_GREEN");
                         chips.g.cam.clearChipsTileLayer(chips.draw.LAYER.ITEM);
                         return true;
                     }
@@ -863,13 +871,13 @@ chips.data = {
             },
             "collision" : {
                 "player" : {
-                    "state" : function(x, y, d) {
-                        chips.events.chip.kill();
+                    "state" : function(player) {
+                        player.kill();
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -905,13 +913,13 @@ chips.data = {
             },
             "collision" : {
                 "player" : {
-                    "state" : function(x, y, d) {
-                        chips.events.chip.kill();
+                    "state" : function(player) {
+                        player.kill();
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -943,13 +951,13 @@ chips.data = {
             },
             "collision" : {
                 "player" : {
-                    "state" : function(x, y, d) {
-                        chips.events.chip.kill();
+                    "state" : function(player) {
+                        player.kill();
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -981,13 +989,13 @@ chips.data = {
             },
             "collision" : {
                 "player" : {
-                    "state" : function(x, y, d) {
-                        chips.events.chip.kill();
+                    "state" : function(player) {
+                        player.kill();
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -1025,13 +1033,13 @@ chips.data = {
             },
             "collision" : {
                 "player" : {
-                    "state" : function(x, y, d) {
-                        chips.events.chip.kill();
+                    "state" : function(player) {
+                        player.kill();
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -1063,13 +1071,13 @@ chips.data = {
             },
             "collision" : {
                 "player" : {
-                    "state" : function(x, y, d) {
-                        chips.events.chip.kill();
+                    "state" : function(player) {
+                        player.kill();
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -1097,13 +1105,13 @@ chips.data = {
             },
             "collision" : {
                 "player" : {
-                    "state" : function(x, y, d) {
-                        chips.events.chip.kill();
+                    "state" : function(player) {
+                        player.kill();
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -1137,20 +1145,20 @@ chips.data = {
             },
             "collision" : {
                 "player" : {
-                    "state" : function(x, y, d) {
-                        chips.events.chip.kill();
+                    "state" : function(player) {
+                        player.kill();
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
             },
             "behavior" : function(monster) {
                 // walks toward Chip
-                var priority = chips.util.dir.approach(monster.x, monster.y, chips.g.cam.chip.x, chips.g.cam.chip.y, "vertical");
+                var priority = chips.util.dir.approach(monster.x, monster.y, chips.g.cam.player.x, chips.g.cam.player.y, "vertical");
 
                 for (var i = 0; i < priority.length; i++) {
                     if (monster.move(priority[i])) {
@@ -1175,13 +1183,13 @@ chips.data = {
             },
             "collision" : {
                 "player" : {
-                    "state" : function(x, y, d) {
-                        chips.events.chip.kill();
+                    "state" : function(player) {
+                        player.kill();
                         return true;
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -1217,22 +1225,26 @@ chips.data = {
             },
             "collision" : {
                 "player" : {
-                    "barrier" : function(x, y, d) {
-                        // TODO: collision object to iterate over all types of collision?
-                        var locking = chips.util.detectCollision("monster", "locking", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
-                        var barrier = chips.util.detectCollision("monster", "barrier", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
-                        var interactive = chips.util.detectCollision("monster", "interactive", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
-                        return locking || barrier;
-                    },
-                    "interactive" : function(x, y, d) {
-                        chips.g.cam.clearTileLayer(x, y, chips.draw.LAYER.MONSTER);
-                        chips.g.cam.setTileLayer(x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], chips.draw.LAYER.MONSTER, chips.g.tiles.BLOCK_BASE);
-                        chips.util.detectCollision("monster", "interactive", x + chips.util.dir.mod(d)[0], y + chips.util.dir.mod(d)[1], d);
-                        return true;
+                    "barrier" : function(player) {
+                        var d = player.facing(),
+                            xDest = player.x + chips.util.dir.mod(d)[0],
+                            yDest = player.y + chips.util.dir.mod(d)[1];
+
+                        var allBlocks = chips.g.cam.monsters.getMonstersByName("BLOCK"),
+                            thisBlock;
+
+                        for (var i = 0; i < allBlocks.length; i++) {
+                            if (allBlocks[i].x === xDest && allBlocks[i].y === yDest) {
+                                thisBlock = allBlocks[i];
+                                break;
+                            }
+                        }
+
+                        return !thisBlock.move(d);
                     }
                 },
                 "monster" : {
-                    "barrier" : function(x, y, d, id) {
+                    "barrier" : function(monster) {
                         return true;
                     }
                 }
@@ -1256,8 +1268,8 @@ chips.data = {
             },
             "collision" : {
                 "monster" : {
-                    "interactive" : function(x, y, d, id) {
-                        chips.events.chip.kill();
+                    "interactive" : function(monster) {
+                        chips.g.cam.player.kill();
                     }
                 }
             },
@@ -1275,8 +1287,8 @@ chips.data = {
             },
             "collision" : {
                 "monster" : {
-                    "interactive" : function(x, y, d, id) {
-                        chips.events.chip.kill();
+                    "interactive" : function(monster) {
+                        chips.g.cam.player.kill();
                     }
                 }
             },
@@ -1294,8 +1306,8 @@ chips.data = {
             },
             "collision" : {
                 "monster" : {
-                    "interactive" : function(x, y, d, id) {
-                        chips.events.chip.kill();
+                    "interactive" : function(monster) {
+                        chips.g.cam.player.kill();
                     }
                 }
             },

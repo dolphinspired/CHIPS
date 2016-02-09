@@ -32,6 +32,10 @@ The beta phase will begin once the game is feature-complete (compared to MS-CC1)
 
 The alpha phase of development will focus on getting all MS-CC1 features into the game and making sure the game controls accurately and, in general, adheres to the [Microsoft Ruleset](http://chipschallenge.wikia.com/wiki/Ruleset#Microsoft_ruleset).
 
+* 0.3.1 - The last build broke block collision, but that is now fixed. I am sure this has broken something else as a result.
+  * There was no hotfix for block collision due to various changes, so collision has been significantly rewritten (something I wanted to do anyway). A Player object, Monster objects, etc. It's cleaner now, supposedly.
+  * Tanks now better emulate their original behavior on a blue switch press (but they still need some tweaking)
+  * Sliding - still not implemented. Next build, maybe?
 * 0.3.0 - Chip's most sentient foes, the Teeth and Tank, are now alive! They're squatting in the freshly-painted Level 5. And with that, all monsters are now in the game! In other news: 
   * Actually a CC2 feature: the Red Thief is now available in Level 2. In this edition, the red thief will politely ask for all the keys you are carrying, but will leave your boots alone.
   * The tileset was rearranged a little bit, do a hard-refresh in your browser to make sure you're getting the latest one.

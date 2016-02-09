@@ -215,10 +215,13 @@ chips.util = {
         return false;
     },
 
-    detectCollision : function(entity, type, x, y, d, id) {
-        if (type === "barrier" && this.edgeCollision(x, y, d)) { return true; } // If edge of map, that's an immediate barrier
-
+    detectCollision : function(entity, type, direction, distantX, distantY) {
+        var d = (direction || entity.facing()), // If no direction specified, use the enemy's facing as direction (forward)
+            x = (distantX || entity.x),// An x,y will be specified during a look-ahead for a teleport
+            y = (distantY || entity.y);
         var distance = (type === "barrier" ? 1 : 0); // If type barrier, get next tile, else get this tile
+
+        if (type === "barrier" && this.edgeCollision(x, y, direction)) { return true; } // If edge of map, that's an immediate barrier
 
         try {
             var floorData = chips.data.tiles[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.FLOOR)]];
@@ -227,29 +230,29 @@ chips.util = {
 
             var floorCollision, itemCollision, monsterCollision;
 
-            floorCollision = floorData.collision ? (floorData.collision.all || floorData.collision[entity]) : false;
-            itemCollision = itemData.collision ? (itemData.collision.all || itemData.collision[entity]) : false;
-            monsterCollision = monsterData.collision ? (monsterData.collision.all || monsterData.collision[entity]) : false;
+            floorCollision = floorData.collision ? (floorData.collision.all || floorData.collision[entity.class]) : false;
+            itemCollision = itemData.collision ? (itemData.collision.all || itemData.collision[entity.class]) : false;
+            monsterCollision = monsterData.collision ? (monsterData.collision.all || monsterData.collision[entity.class]) : false;
 
             if (floorCollision && typeof floorCollision[type] == "function") {
-                floorCollision = floorCollision[type](x, y, d, id);
+                floorCollision = floorCollision[type](entity);
             } else {
                 floorCollision = false;
             }
 
             if (itemCollision && typeof itemCollision[type] == "function") {
-                itemCollision = itemCollision[type](x, y, d, id);
+                itemCollision = itemCollision[type](entity);
             } else {
                 itemCollision = false;
             }
 
             if (monsterCollision && typeof monsterCollision[type] == "function") {
-                monsterCollision = monsterCollision[type](x, y, d, id);
+                monsterCollision = monsterCollision[type](entity);
             } else {
                 monsterCollision = false;
             }
         } catch (e) {
-            console.error(e);
+            console.error("Failure to execute " + type + " collision of " + entity.name + ":\n" + e);
             if (chips.g.debug) { debugger; }
             return false;
         }

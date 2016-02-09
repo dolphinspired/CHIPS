@@ -29,6 +29,11 @@ chips.map = {
     },
 
     ActiveMap : function(num) {
+
+        /**************************/
+        /* VALIDATION AND LOADING */
+        /**************************/
+
         if (typeof num == "undefined") {
             console.error("No levelNum assigned to ActiveMap");
             if (chips.g.debug) { debugger; }
@@ -37,54 +42,80 @@ chips.map = {
 
         var level = chips.g.cls[num];
 
+        /**************/
+        /* LEVEL DATA */
+        /**************/
+
         this.number = parseInt(num);
         this.name = level.name;
         this.password = level.password;
-        this.timeLeft = parseInt(level.time);
-        this.chipsLeft = parseInt(level.chips);
+        this.timeLeft = (parseInt(level.time) < 1 ? -1 : parseInt(level.time)); // Min. 1 sec, else -1 (unlimited)
+        this.chipsLeft = (parseInt(level.chips) < 0 ? 0 : parseInt(level.chips)); // Min. 0
         this.hint = level.hint;
-
         this.width = level.width;
         this.height = Math.floor(level.board.length / level.width);
-        this.board = [];
 
-        this.chip = {
-            x : -1,
-            y : -1,
-            facing : chips.util.dir.SOUTH
-        };
+        /********************/
+        /* STAGE AND ACTORS */
+        /********************/
+
+        this.board = [];
+        this.player = {};
 
         for (var y = 0; y < this.height; y++) {
             if (typeof this.board[y] == "undefined") { this.board[y] = [] }
             for (var x = 0; x < this.width; x++) {
                 this.board[y][x] = level.board[(y * this.width) + x]; // Transform to 2D array
                 // If Chip is found in the board and hasn't been found yet, set his location
-                if (this.chip.x === -1) {
+                if (typeof this.player.x == "undefined") {
                     if (this.board[y][x] >= chips.g.tiles.CHIP_BASE) {
-                        this.chip.x = x;
-                        this.chip.y = y;
+                        this.player = new chips.obj.Player(this.board[y][x], x, y);
                     }
                 }
             }
         }
 
-        this.inventory = new chips.obj.InventoryMap(chips.data.tiles);
-        this.elapsedTime = new chips.obj.Timer();
+        // If Chip was not found, put him facing south in the top-left corner of the map.
+        if (typeof this.player.x == "undefined") {
+            this.player = new chips.obj.Player(chips.g.tiles.CHIP_SOUTH, 0, 0);
+        }
 
+        this.view = {
+            top : 0,
+            left : 0,
+            bottom : 0,
+            right : 0
+        };
+
+        this.monsters = {};
+        chips.vars.requests.add("syncMonsterList"); // Finds the map's enemies and loads them into the monster list
+
+        /*************************/
+        /* SUPPORTING LEVEL DATA */
+        /*************************/
+
+        this.elapsedTime = new chips.obj.Timer();
         this.turn = 0;
         this.chipsFacingReset = 0;
-        this.monsters = {};
-        chips.vars.requests.add("generateMonsterList");
+        this.slideList = []; // List of everything that needs to auto-move, as on ice, force floors, etc.
 
-        // VALIDATION
+        /**********************************************/
+        /* BOARD DATA MANIPULATION (turns, hud, etc.) */
+        /**********************************************/
 
-        // Chip's coords must be within the bounds of the board, else set to x = 0 or y = 0
-        this.chip.x = (this.chip.x < 0 || this.chip.x > this.width - 1 ? 0 : this.chip.x);
-        this.chip.y = (this.chip.y < 0 || this.chip.y > this.height - 1 ? 0 : this.chip.y);
-
-        this.password = (this.password.length > 4 ? this.password.substr(0,4) : this.password); // Max 4 chars
-        this.timeLeft = (this.timeLeft < 1 ? -1 : this.timeLeft); // Min 1 second, else unlimited time
-        this.chipsLeft = (this.chipsLeft < 0 ? 0 : this.chipsLeft); // Min 0 chips left
+        this.tickAllMonsters = function() {
+            var thisMonster, monsters = this.monsters.getAll();
+            for (var monster in monsters) {
+                if (!monsters.hasOwnProperty(monster)) { continue; }
+                thisMonster = monsters[monster];
+                if (chips.data.tiles[thisMonster.name].speed && this.turn % chips.data.tiles[thisMonster.name].speed === 0) {
+                    // Actions and Behaviors are mutually exclusive on any given turn
+                    if (!monsters[monster].performAction()) {
+                        chips.data.tiles[thisMonster.name].behavior(monsters[monster]);
+                    }
+                }
+            }
+        };
 
         this.updateTurn = function() {
             if (this.elapsedTime.elapsed_ms - (this.turn * chips.g.turnTime) > this.turn) {
@@ -100,32 +131,14 @@ chips.map = {
             }
         };
 
-        this.addItem = function(item) {
-            this.inventory[item].quantity++;
-            chips.vars.requests.add("updateInventory");
-        };
-
-        this.removeItem = function(item, removeAll) {
-            if (removeAll) {
-                this.inventory[item].quantity = 0;
-            } else if (this.inventory[item].quantity > 0) {
-                this.inventory[item].quantity--;
-            }
-            chips.vars.requests.add("updateInventory");
-        };
-
-        this.reset = function() {
-            chips.map.load.level(this.number);
-        };
-
         // This also controls the update of turns
-        this.updateTime = function(newTime) {
+        this.setTime = function(newTime) {
             if (this.timeLeft > 0) {
                 this.timeLeft = newTime;
             }
 
             if (this.timeLeft === 0) { // both or either can fire in one call
-                chips.events.chip.kill("Out of time!");
+                this.player.kill("Out of time!");
             }
 
             chips.vars.requests.add("updateTime");
@@ -136,42 +149,25 @@ chips.map = {
         };
 
         this.decrementTime = function(amount) {
-            var amt = (amount ? amount : 1);
-            this.updateTime(this.timeLeft - amt);
+            var amt = (amount || 1);
+            this.setTime(this.timeLeft - amt);
         };
 
-
-
-        this.updateChipsLeft = function(newChipsLeft) {
+        this.setChipsLeft = function(newChipsLeft) {
             if (newChipsLeft >= 0) {
                 this.chipsLeft = newChipsLeft;
                 chips.vars.requests.add("updateChipsLeft");
             }
         };
 
-        this.decrementChipsLeft = function() {
-            this.updateChipsLeft(this.chipsLeft - 1);
+        this.decrementChipsLeft = function(amount) {
+            var amt = (amount || 1);
+            this.setChipsLeft(this.chipsLeft - 1);
         };
 
-        this.slideList = []; // List of everything that needs to auto-move, as on ice, force floorts, etc.
-
-        this.toggleFloors = function() {
-            var thisFloor;
-            for (var y = 0; y < this.board.length; y++) {
-                for (var x = 0; x < this.board[y].length; x++) {
-                    thisFloor = this.getTileLayer(x, y, chips.draw.LAYER.FLOOR);
-                    if (thisFloor === chips.g.tiles.TOGGLE_CLOSED) {
-                        this.setTileLayer(x, y, chips.draw.LAYER.FLOOR, chips.g.tiles.TOGGLE_OPEN);
-                    } else if (thisFloor === chips.g.tiles.TOGGLE_OPEN) {
-                        this.setTileLayer(x, y, chips.draw.LAYER.FLOOR, chips.g.tiles.TOGGLE_CLOSED);
-                    }
-                }
-            }
-        };
-
-        this.moveTanks = function() {
-
-        };
+        /**************************/
+        /* TILE MANUIPULATION API */
+        /**************************/
 
         // Returns an array containing the x,y coordinate pairs of every instance
         // of the arg tile on the board
@@ -209,7 +205,7 @@ chips.map = {
             try {
                 return this.board[y][x];
             } catch(e) {
-                debugger;
+                if (chips.g.debug) { debugger; }
             }
         };
 
@@ -287,63 +283,63 @@ chips.map = {
         };
 
         this.getChipsTile = function() {
-            return this.getTile(this.chip.x, this.chip.y);
+            return this.getTile(this.player.x, this.player.y);
         };
 
         this.setChipsTile = function(tile) {
-            return this.setTile(this.chip.x, this.chip.y, tile);
+            return this.setTile(this.player.x, this.player.y, tile);
         };
 
         this.getChipsTileLayer = function(layer) {
-            return this.getTileLayer(this.chip.x, this.chip.y, layer);
+            return this.getTileLayer(this.player.x, this.player.y, layer);
         };
 
         this.setChipsTileLayer = function(layer, tile) {
-            return this.setTileLayer(this.chip.x, this.chip.y, layer, tile);
+            return this.setTileLayer(this.player.x, this.player.y, layer, tile);
         };
 
         this.clearChipsTileLayer = function(layer) {
-            return this.clearTileLayer(this.chip.x, this.chip.y, layer);
+            return this.clearTileLayer(this.player.x, this.player.y, layer);
         };
 
         this.getChipsRelativeTile = function(direction, distance) {
-            return this.getRelativeTile(this.chip.x, this.chip.y, direction, distance);
+            return this.getRelativeTile(this.player.x, this.player.y, direction, distance);
         };
 
         this.setChipsRelativeTile = function(direction, distance, tile) {
-            return this.setRelativeTile(this.chip.x, this.chip.y, direction, distance, tile);
+            return this.setRelativeTile(this.player.x, this.player.y, direction, distance, tile);
         };
 
         this.getChipsRelativeTileLayer = function(direction, distance, layer) {
-            return this.getRelativeTileLayer(this.chip.x, this.chip.y, direction, distance, layer);
+            return this.getRelativeTileLayer(this.player.x, this.player.y, direction, distance, layer);
         };
 
         this.setChipsRelativeTileLayer = function(direction, distance, layer, tile) {
-            return this.setRelativeTileLayer(this.chip.x, this.chip.y, direction, distance, layer, tile);
+            return this.setRelativeTileLayer(this.player.x, this.player.y, direction, distance, layer, tile);
         };
 
         this.clearChipsRelativeTileLayer = function(direction, distance, layer) {
-            return this.clearRelativeTileLayer(this.chip.x, this.chip.y, direction, distance, layer);
+            return this.clearRelativeTileLayer(this.player.x, this.player.y, direction, distance, layer);
         };
 
         this.getChipsNextTile = function(direction) {
-            return this.getNextTile(this.chip.x, this.chip.y, direction);
+            return this.getNextTile(this.player.x, this.player.y, direction);
         };
 
         this.setChipsNextTile = function(direction, tile) {
-            return this.setNextTile(this.chip.x, this.chip.y, direction, tile);
+            return this.setNextTile(this.player.x, this.player.y, direction, tile);
         };
 
         this.getChipsNextTileLayer = function(direction, layer) {
-            return this.getNextTileLayer(this.chip.x, this.chip.y, direction, layer);
+            return this.getNextTileLayer(this.player.x, this.player.y, direction, layer);
         };
 
         this.setChipsNextTileLayer = function(direction, layer, tile) {
-            return this.setNextTileLayer(this.chip.x, this.chip.y, direction, layer, tile);
+            return this.setNextTileLayer(this.player.x, this.player.y, direction, layer, tile);
         };
 
         this.clearChipsNextTileLayer = function(direction, layer) {
-            return this.clearNextTileLayer(this.chip.x, this.chip.y, direction, layer);
+            return this.clearNextTileLayer(this.player.x, this.player.y, direction, layer);
         };
 
         this.getChipsFacing = function() {
@@ -357,49 +353,46 @@ chips.map = {
             this.setChipsTileLayer(chips.draw.LAYER.CHIP, facedTile);
         };
 
-        this.tickAllMonsters = function() {
-            var thisMonster, monsters = this.monsters.getAll();
-            for (var monster in monsters) {
-                if (!monsters.hasOwnProperty(monster)) { continue; }
-                thisMonster = monsters[monster];
-                if (chips.data.tiles[thisMonster.name].speed && this.turn % chips.data.tiles[thisMonster.name].speed === 0) {
-                    // Actions and Behaviors are mutually exclusive on any given turn
-                    if (!monsters[monster].performAction()) {
-                        chips.data.tiles[thisMonster.name].behavior(monsters[monster]);
-                    }
-                }
-            }
+        /***************************/
+        /* OTHER UTILITY FUNCTIONS */
+        /***************************/
+
+        this.reset = function() {
+            chips.map.load.level(this.number);
         };
 
-        this.view = {
-            top : 0,
-            left : 0,
-            bottom : 0,
-            right : 0,
-            update : function() {
-                // Draw all tiles up to half a board away from Chip (as in, put Chip in the center)
-                // These vars are zero-based tile coords
-                this.left = chips.g.cam.chip.x - chips.draw.HALFBOARD_X;
-                this.top = chips.g.cam.chip.y - chips.draw.HALFBOARD_Y;
-                this.right = chips.g.cam.chip.x + chips.draw.HALFBOARD_X;
-                this.bottom = chips.g.cam.chip.y + chips.draw.HALFBOARD_Y;
+        this.win = function() {
+            // TODO: in lieu of a dialog box...
+            var retStr = "<span style='color:red'>Hooray, you completed Level " + this.number;
+            retStr += this.timeLeft > 0 ? " with a time of " + this.timeLeft + " seconds!" : "!";
+            chips.vars.requests.add("setGameMessage", [retStr]);
+            chips.map.load.nextLevel();
+        };
 
-                // These rules will correct the drawing area if the "camera" is not centered on Chip
-                // Must not exceed the edge of the currentActiveMap
-                // Must not exceed the edge of the boardWidth
-                if (this.left < 0) {
-                    this.left = 0;
-                    this.right = chips.vars.boardWidth_tiles - 1;
-                } if (this.top < 0) {
-                    this.top = 0;
-                    this.bottom = chips.vars.boardHeight_tiles - 1;
-                } if (this.right > chips.g.cam.width - 1) {
-                    this.left = chips.g.cam.width - chips.vars.boardWidth_tiles;
-                    this.right = chips.g.cam.width - 1;
-                } if (this.bottom > chips.g.cam.height - 1) {
-                    this.top = chips.g.cam.height - chips.vars.boardHeight_tiles;
-                    this.bottom = chips.g.cam.height - 1;
-                }
+        this.view.update = function() {
+            var player = chips.g.cam.player;
+            // Draw all tiles up to half a board away from Chip (as in, put Chip in the center)
+            // These vars are zero-based tile coords
+            this.left = player.x - chips.draw.HALFBOARD_X;
+            this.top = player.y - chips.draw.HALFBOARD_Y;
+            this.right = player.x + chips.draw.HALFBOARD_X;
+            this.bottom = player.y + chips.draw.HALFBOARD_Y;
+
+            // These rules will correct the drawing area if the "camera" is not centered on Chip
+            // Must not exceed the edge of the currentActiveMap
+            // Must not exceed the edge of the boardWidth
+            if (this.left < 0) {
+                this.left = 0;
+                this.right = chips.vars.boardWidth_tiles - 1;
+            } if (this.top < 0) {
+                this.top = 0;
+                this.bottom = chips.vars.boardHeight_tiles - 1;
+            } if (this.right > chips.g.cam.width - 1) {
+                this.left = chips.g.cam.width - chips.vars.boardWidth_tiles;
+                this.right = chips.g.cam.width - 1;
+            } if (this.bottom > chips.g.cam.height - 1) {
+                this.top = chips.g.cam.height - chips.vars.boardHeight_tiles;
+                this.bottom = chips.g.cam.height - 1;
             }
         };
     }

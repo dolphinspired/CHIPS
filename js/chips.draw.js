@@ -116,12 +116,12 @@ chips.draw = {
             yDest++;
         }
 
-        chips.util.detectCollision("player", "state", chips.g.cam.chip.x, chips.g.cam.chip.y);
+        chips.util.detectCollision(chips.g.cam.player, "state");
     },
 
     debug : function(args) {
         var ctx = chips.assets.canvi.gContext;
-        var debugMessage = "CHIP: " + chips.g.cam.chip.x + ", " + chips.g.cam.chip.y +
+        var debugMessage = "CHIP: " + chips.g.cam.player.x + ", " + chips.g.cam.player.y +
             " / keylock: " + chips.g.keylock + " / turn: " + chips.g.cam.turn;
         var drawX = 6, drawY = chips.assets.canvi.gCanvas.height-6;
 
@@ -154,7 +154,7 @@ chips.draw = {
     hud : function() {
         chips.draw.levelNumber();
         chips.draw.time();
-        if (chips.util.getLayer(chips.g.cam.board[chips.g.cam.chip.y][chips.g.cam.chip.x], 0) === chips.g.tiles.HINT) {
+        if (chips.util.getLayer(chips.g.cam.board[chips.g.cam.player.y][chips.g.cam.player.x], 0) === chips.g.tiles.HINT) {
             chips.draw.hint();
         } else {
             chips.draw.chipsLeft();
@@ -220,7 +220,7 @@ chips.draw = {
             }
         }
 
-        var destX, destY, inv = chips.g.cam.inventory;
+        var destX, destY, inv = chips.g.cam.player.inventory.items;
         for (var i in inv) {
             if (!inv.hasOwnProperty(i)) { continue; }
             if (inv[i].quantity > 0) {

@@ -32,15 +32,36 @@ chips.obj = (function() {
         }
     };
 
-    var InventoryMap = function(tData) {
+    var Inventory = function(tData) {
+        this.items = {};
+
         for (var i in tData) {
             if (!tData.hasOwnProperty(i)) { continue; }
             if (tData[i].type === "item" && tData[i].inventory && tData[i].inventory.slot >= 0) {
-                this[i] = {
-                    "quantity": 0,
-                    "slot": tData[i].inventory.slot
+                this.items[i] = {
+                    "name" : i,
+                    "quantity" : 0,
+                    "slot" : tData[i].inventory.slot
                 }
             }
+        }
+    };
+
+    Inventory.prototype = {
+        constructor : Inventory,
+
+        addItem : function(item) {
+            this.items[item].quantity++;
+            chips.vars.requests.add("updateInventory");
+        },
+
+        removeItem : function(item, removeAll) {
+            if (removeAll) {
+                this.items[item].quantity = 0;
+            } else if (this.items[item].quantity > 0) {
+                this.items[item].quantity--;
+            }
+            chips.vars.requests.add("updateInventory");
         }
     };
 
@@ -136,7 +157,7 @@ chips.obj = (function() {
 
         add : function(x, y, tile) {
             var thisMonster = chips.g.cam.getTileLayer(x, y, chips.draw.LAYER.MONSTER), uid = this.getUID();
-            this.list[uid] = new chips.obj.Monster(uid, chips.g.tLookup[thisMonster], thisMonster, x, y);
+            this.list[uid] = new Monster(uid, chips.g.tLookup[thisMonster], thisMonster, x, y);
         },
 
         remove : function(id) {
@@ -146,6 +167,7 @@ chips.obj = (function() {
 
     var Monster = function(id, name, tile, x, y) {
         this.id = id;
+        this.class = "monster";
         this.name = name;
         this.tile = tile;
         this.x = x;
@@ -160,7 +182,7 @@ chips.obj = (function() {
             return chips.util.getLayerCoord(this.tile, 4) % 4;
         };
 
-        // PROCESSING NON-BEHAVIORAL ACTIONS
+        // MONSTER-SPECIFIC (AI)
 
         this.actionQueue = [];
         this.actionTiming = [];
@@ -184,13 +206,15 @@ chips.obj = (function() {
         addPattern : function(patternName, interruptCurrentPattern) {
             var interrupt = (interruptCurrentPattern || false);
             var pattern = chips.data.tiles[this.name].triggers.patterns[patternName];
+            var i;
 
+            // TODO: This might need tweaking if certain actions should be non-interruptable
             if (interrupt) {
                 this.actionQueue = [];
                 this.actionTiming = [];
             }
 
-            for (var i = 0; i < pattern.length; i += 2) {
+            for (i = 0; i < pattern.length; i += 2) {
                 this.addAction(pattern[i], pattern[i+1]);
             }
         },
@@ -231,63 +255,175 @@ chips.obj = (function() {
         // tile are updated at the same time
 
         set : function(tile) {
-            this.tile = chips.g.cam.setTileLayer(this.x, this.y, chips.draw.LAYER.MONSTER, tile);
-            return this.tile;
+            return Action.set(this, tile);
+        },
+
+        unset : function() {
+            return Action.unset(this);
         },
 
         turn : function(d) {
-            // TODO: Mathematical approach?
-            return this.set(chips.g.tiles[this.name + "_" + chips.util.dir.toString(d)])
+            return Action.turn(this, d);
         },
 
         move : function(d, changeDirection) {
+            return Action.move(this, d, changeDirection);
+        },
+
+        teleport : function(x, y) {
+            return Action.teleport(this, x, y);
+        },
+
+        kill : function() {
+            this.unset();
+            chips.g.cam.monsters.remove(this.id);
+            // This monster object is now floating out there in javaspace... what to do with it?
+            return true;
+        }
+    };
+
+    var Player = function(tile, x, y) {
+        this.id = 0;
+        this.class = "player";
+        this.name = "CHIP";
+        this.tile = tile;
+        this.x = x;
+        this.y = y;
+
+        this.speed = function() {
+            return chips.data.tiles[this.name].speed;
+        };
+
+        this.facing = function() {
+            // TODO: avoid magic numbers (6)
+            return chips.util.getLayerCoord(this.tile, 6) % 4;
+        };
+
+        // PLAYER-SPECIFIC
+
+        this.inventory = new Inventory(chips.data.tiles);
+    };
+
+    Player.prototype = {
+        constructor : Player,
+
+        set : function(tile) {
+            return Action.set(this, tile);
+        },
+
+        unset : function() {
+            return Action.unset(this);
+        },
+
+        turn : function(d) {
+            return Action.turn(this, d);
+        },
+
+        move : function(d, changeDirection) {
+            var ret = Action.move(this, d, changeDirection);
+            chips.g.cam.view.update();
+            return ret;
+        },
+
+        teleport : function(x, y) {
+            var ret = Action.teleport(this, x, y);
+            chips.g.cam.view.update();
+            return ret;
+        },
+
+        kill : function(msg) {
+            if (!msg) { msg = "Oh dear, you are dead!" }
+            chips.vars.requests.add("setGameMessage", [msg]); // TODO: Enhance
+            chips.g.cam.reset();
+            chips.vars.requests.add("redrawAll");
+        },
+
+        swim : function(inWater) {
+            if (inWater) {
+                // TODO: Put the swim diff somewhere
+                var swimTile = this.tile + 10000000;
+                this.tile = chips.g.cam.setTileLayer(this.x, this.y, chips.draw.LAYER.CHIP, swimTile);
+                this.name += "_SWIM";
+                return this.tile;
+            } else {
+                var dryTile = this.tile - 10000000;
+                this.tile = chips.g.cam.setTileLayer(this.x, this.y, chips.draw.LAYER.CHIP, dryTile);
+                this.name = this.name.substring(0, this.name.indexOf("_SWIM"));
+                return this.tile;
+            }
+        }
+    };
+
+    var Action = {
+        getLayer : function(entity) {
+            return entity.class === "player" ? chips.draw.LAYER.CHIP : chips.draw.LAYER.MONSTER;
+        },
+
+        set : function(entity, tile) {
+            var tileToSet = (tile || entity.tile);
+            var layerToSet = this.getLayer(entity);
+            chips.g.cam.setTileLayer(entity.x, entity.y, layerToSet, tileToSet);
+            entity.tile = chips.g.cam.getTileLayer(entity.x, entity.y, layerToSet);
+            return entity;
+        },
+
+        unset : function(entity) {
+            var layerToSet = this.getLayer(entity);
+            chips.g.cam.clearTileLayer(entity.x, entity.y, layerToSet);
+            return entity;
+        },
+
+        turn : function(entity, d) {
+            // TODO: Mathematical approach?
+            return entity.set(chips.g.tiles[entity.name + "_" + chips.util.dir.toString(d)])
+        },
+
+        move : function(entity, d, changeDirection) {
+            if (typeof d == "undefined" ) {
+                d = entity.facing(); // If no direction specified, move forward
+            }
+
             var cd = (changeDirection || true);
 
             if (cd) {
-                this.turn(d); // Updates this.tile during the turn
+                entity.turn(d); // Updates entity.tile during the turn
             }
 
-            var hasLockingCollision = chips.util.detectCollision("monster", "locking", this.x, this.y, d);
-            var hasBarrierCollision = chips.util.detectCollision("monster", "barrier", this.x, this.y, d);
+            var hasUnloadCollision = chips.util.detectCollision(entity, "unload", d);
+            var hasLockingCollision = chips.util.detectCollision(entity, "locking", d);
+            var hasBarrierCollision = chips.util.detectCollision(entity, "barrier", d);
 
             if (!hasLockingCollision && !hasBarrierCollision) {
-                // Clear out the old tile's monster layer
-                chips.g.cam.clearTileLayer(this.x, this.y, chips.draw.LAYER.MONSTER);
-
-                // Update this Monster's location
-                this.x += chips.util.dir.mod(d)[0];
-                this.y += chips.util.dir.mod(d)[1];
-
-                // Draw this Monster in its new location
-                chips.g.cam.setTileLayer(this.x, this.y, chips.draw.LAYER.MONSTER, this.tile);
-
-                chips.util.detectCollision("monster", "interactive", this.x, this.y, d, this.id);
-                return true;
+                entity.unset();
+                entity.x += chips.util.dir.mod(d)[0];
+                entity.y += chips.util.dir.mod(d)[1];
+                entity.set();
+                chips.util.detectCollision(entity, "interactive", d);
+                return entity;
             } else {
                 return false;
             }
         },
 
-        kill : function() {
-            chips.g.cam.clearTileLayer(this.x, this.y, chips.draw.LAYER.MONSTER);
-            chips.g.cam.monsters.remove(this.id);
-            return true;
-            // This monster object is now floating out there in javaspace... what to do with it?
+        teleport : function(entity, x, y) {
+            entity.unset();
+            entity.x = x;
+            entity.y = y;
+            entity.set();
+            chips.util.detectCollision(entity, "interactive");
+            return entity;
         }
-    };
-
-    var Player = function() {
-
     };
 
     return {
         TileMap : TileMap,
         ReverseTileMap : ReverseTileMap,
-        InventoryMap : InventoryMap,
+        // Inventory : Inventory, // Only accessed by the Player object
         Timer : Timer,
 
         MonsterList : MonsterList,
-        Monster : Monster,
+        // Monster : Monster, // Only accessed by the MonsterList
         Player : Player
+        // Action : Action // Only accessed by Monsters/Player
     };
 })();

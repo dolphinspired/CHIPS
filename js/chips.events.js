@@ -164,47 +164,5 @@ chips.events = {
             if (this.keysDown[key] > 0) { return true; }
         }
         return false;
-    },
-
-    chip : {
-        move : function(d) {
-            chips.g.cam.clearChipsTileLayer(chips.draw.LAYER.CHIP);
-
-            var hasUnloadCollision = chips.util.detectCollision("player", "unload", chips.g.cam.chip.x, chips.g.cam.chip.y, d);
-            var hasLockingCollision = chips.util.detectCollision("player", "locking", chips.g.cam.chip.x, chips.g.cam.chip.y, d);
-            var hasBarrierCollision = chips.util.detectCollision("player", "barrier", chips.g.cam.chip.x, chips.g.cam.chip.y, d);
-
-            if (!hasLockingCollision && !hasBarrierCollision) {
-                chips.g.cam.chip.x += chips.util.dir.mod(d)[0];
-                chips.g.cam.chip.y += chips.util.dir.mod(d)[1];
-                chips.g.cam.setChipsFacing(d);
-                if (d !== chips.util.dir.SOUTH) {
-                    chips.vars.requests.add("startChipsFacingResetDelay");
-                }
-                chips.util.detectCollision("player", "interactive", chips.g.cam.chip.x, chips.g.cam.chip.y, d);
-            } else {
-                chips.g.cam.setChipsFacing(d); // this actually places Chip back onto the board
-                if (d !== chips.util.dir.SOUTH) {
-                    chips.vars.requests.add("startChipsFacingResetDelay");
-                }
-                return false;
-            }
-
-            chips.g.cam.view.update();
-            return true;
-        },
-        kill : function(msg) {
-            if (!msg) { msg = "Oh dear, you are dead!" }
-            chips.vars.requests.add("setGameMessage", [msg]); // TODO: Enhance
-            chips.g.cam.reset();
-            chips.vars.requests.add("redrawAll");
-        },
-        win : function() {
-            // TODO: in lieu of a dialog box...
-            var retStr = "<span style='color:red'>Hooray, you completed Level " + chips.g.cam.number;
-            retStr += chips.g.cam.timeLeft > 0 ? " with a time of " + chips.g.cam.timeLeft + " seconds!" : "!";
-            chips.vars.requests.add("setGameMessage", [retStr]);
-            chips.map.load.nextLevel();
-        }
     }
 };
