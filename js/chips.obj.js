@@ -173,6 +173,9 @@ chips.obj = (function() {
         this.x = x;
         this.y = y;
 
+        this.state = chips.vars.entityState.FREE;
+        this.lastAction = 0;
+
         this.speed = function() {
             return chips.data.tiles[this.name].speed;
         };
@@ -192,6 +195,18 @@ chips.obj = (function() {
 
     Monster.prototype = {
         constructor : Monster,
+
+        getState : function(stateInQuestion) {
+            return Entity.getState(this, stateInQuestion);
+        },
+
+        setState : function(stateToChange, targetState) {
+            return Entity.setState(this, stateToChange, targetState);
+        },
+
+        hasItem : function(item) {
+            return false; // enemies do not have any items
+        },
 
         addAction : function(action, wait) {
             this.actionQueue[this.actionQueue.length] = action;
@@ -245,6 +260,7 @@ chips.obj = (function() {
                     this.removeAction();
                 }
 
+                this.lastAction = chips.g.cam.turn;
                 return true; // There was at least one pending action to perform
             }
         },
@@ -290,6 +306,9 @@ chips.obj = (function() {
         this.x = x;
         this.y = y;
 
+        this.state = chips.vars.entityState.FREE;
+        this.lastAction = 0;
+
         this.speed = function() {
             return chips.data.tiles[this.name].speed;
         };
@@ -307,6 +326,18 @@ chips.obj = (function() {
     Player.prototype = {
         constructor : Player,
 
+        getState : function(stateInQuestion) {
+            return Entity.getState(this, stateInQuestion);
+        },
+
+        setState : function(stateToChange, targetState) {
+            return Entity.setState(this, stateToChange, targetState);
+        },
+
+        hasItem : function(item) {
+            return this.inventory.items[item].quantity > 0;
+        },
+
         set : function(tile) {
             return Action.set(this, tile);
         },
@@ -323,6 +354,10 @@ chips.obj = (function() {
             var ret = Action.move(this, d, changeDirection);
             chips.g.cam.view.update();
             return ret;
+        },
+
+        slide : function(d, changeDirection) {
+            return Action.slide(this, d, changeDirection);
         },
 
         teleport : function(x, y) {
@@ -399,19 +434,58 @@ chips.obj = (function() {
                 entity.y += chips.util.dir.mod(d)[1];
                 entity.set();
                 chips.util.detectCollision(entity, "interactive", d);
+                entity.lastAction = chips.g.cam.turn;
                 return entity;
             } else {
                 return false;
             }
         },
 
+        slide : function(entity, d, changeDirection) {
+            chips.vars.requests.add("moveOnNextTurn", [entity, d, changeDirection]);
+            return entity;
+        },
+
         teleport : function(entity, x, y) {
+            if (chips.x !== x || chips.y !== y) {
+                chips.vars.requests.add("updateMap"); // If entity's location changes, update the map
+            }
             entity.unset();
             entity.x = x;
             entity.y = y;
             entity.set();
             chips.util.detectCollision(entity, "interactive");
             return entity;
+        }
+    };
+
+    var Entity = {
+        // If stateInQuestion is not specified, returns the sum of all states
+        getState : function(entity, stateInQuestion) {
+            if (typeof stateInQuestion == "undefined") {
+                return entity.state;
+            } else {
+                return chips.util.getBit(entity.state, stateInQuestion);
+            }
+        },
+
+        // If targetState not specified, the state is toggled
+        setState : function(entity, stateToChange, targetState) {
+            var currentState = chips.util.getBit(entity.state, stateToChange);
+            var target;
+
+            if (typeof targetState == "undefined" ) {
+                target = !currentState;
+            } else {
+                target = targetState;
+            }
+
+            if (currentState && !target) {
+                entity.state -= stateToChange;
+            } else if (!currentState && target) {
+                entity.state += stateToChange;
+            }
+            return true;
         }
     };
 

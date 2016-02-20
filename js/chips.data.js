@@ -242,19 +242,167 @@ chips.data = {
         },
         ICE_WALL_NORTHEAST : {
             "type" : "floor",
-            "value" : 24
+            "value" : 24,
+            "collision" : {
+                "all" : {
+                    "unload" : function(entity) {
+                        entity.setState(chips.vars.entityState.SLIDING, false);
+                        entity.setState(chips.vars.entityState.MOVELOCKED, false);
+                        return true;
+                    },
+                    "barrier" : function(entity) {
+                        var d = entity.facing();
+                        return d === chips.util.dir.SOUTH || d === chips.util.dir.WEST;
+                    },
+                    "interactive" : function(entity) {
+                        if (entity.hasItem("SKATE")) {
+                            return true;
+                        } else {
+                            entity.state = chips.vars.entityState.SLIDING + chips.vars.entityState.MOVELOCKED;
+                            var d = entity.facing();
+                            var dTarget;
+
+                            if (d === chips.util.dir.NORTH) {
+                                dTarget = chips.util.dir.WEST;
+                            } else if (d === chips.util.dir.EAST) {
+                                dTarget = chips.util.dir.SOUTH;
+                            } else {
+                                dTarget = d;
+                            }
+
+                            if (chips.util.detectCollision(entity, "barrier", dTarget)) {
+                                entity.slide(chips.util.dir.back(d));
+                            } else {
+                                entity.slide(dTarget);
+                            }
+                        }
+                        return true;
+                    }
+                }
+            }
         },
         ICE_WALL_NORTHWEST : {
             "type" : "floor",
-            "value" : 25
+            "value" : 25,
+            "collision" : {
+                "all" : {
+                    "unload" : function(entity) {
+                        entity.setState(chips.vars.entityState.SLIDING, false);
+                        entity.setState(chips.vars.entityState.MOVELOCKED, false);
+                        return true;
+                    },
+                    "barrier" : function(entity) {
+                        var d = entity.facing();
+                        return d === chips.util.dir.SOUTH || d === chips.util.dir.EAST;
+                    },
+                    "interactive" : function(entity) {
+                        if (entity.hasItem("SKATE")) {
+                            return true;
+                        } else {
+                            entity.state = chips.vars.entityState.SLIDING + chips.vars.entityState.MOVELOCKED;
+                            var d = entity.facing();
+                            var dTarget;
+
+                            if (d === chips.util.dir.NORTH) {
+                                dTarget = chips.util.dir.EAST;
+                            } else if (d === chips.util.dir.WEST) {
+                                dTarget = chips.util.dir.SOUTH;
+                            } else {
+                                dTarget = d;
+                            }
+
+                            if (chips.util.detectCollision(entity, "barrier", dTarget)) {
+                                entity.slide(chips.util.dir.back(d));
+                            } else {
+                                entity.slide(dTarget);
+                            }
+                        }
+                        return true;
+                    }
+                }
+            }
         },
         ICE_WALL_SOUTHWEST : {
             "type" : "floor",
-            "value" : 26
+            "value" : 26,
+            "collision" : {
+                "all" : {
+                    "unload" : function(entity) {
+                        entity.setState(chips.vars.entityState.SLIDING, false);
+                        entity.setState(chips.vars.entityState.MOVELOCKED, false);
+                        return true;
+                    },
+                    "barrier" : function(entity) {
+                        var d = entity.facing();
+                        return d === chips.util.dir.NORTH || d === chips.util.dir.EAST;
+                    },
+                    "interactive" : function(entity) {
+                        if (entity.hasItem("SKATE")) {
+                            return true;
+                        } else {
+                            entity.state = chips.vars.entityState.SLIDING + chips.vars.entityState.MOVELOCKED;
+                            var d = entity.facing();
+                            var dTarget;
+
+                            if (d === chips.util.dir.SOUTH) {
+                                dTarget = chips.util.dir.EAST;
+                            } else if (d === chips.util.dir.WEST) {
+                                dTarget = chips.util.dir.NORTH;
+                            } else {
+                                dTarget = d;
+                            }
+
+                            if (chips.util.detectCollision(entity, "barrier", dTarget)) {
+                                entity.slide(chips.util.dir.back(d));
+                            } else {
+                                entity.slide(dTarget);
+                            }
+                        }
+                        return true;
+                    }
+                }
+            }
         },
         ICE_WALL_SOUTHEAST : {
             "type" : "floor",
-            "value" : 27
+            "value" : 27,
+            "collision" : {
+                "all" : {
+                    "unload" : function(entity) {
+                        entity.setState(chips.vars.entityState.SLIDING, false);
+                        entity.setState(chips.vars.entityState.MOVELOCKED, false);
+                        return true;
+                    },
+                    "barrier" : function(entity) {
+                        var d = entity.facing();
+                        return d === chips.util.dir.NORTH || d === chips.util.dir.WEST;
+                    },
+                    "interactive" : function(entity) {
+                        if (entity.hasItem("SKATE")) {
+                            return true;
+                        } else {
+                            entity.state = chips.vars.entityState.SLIDING + chips.vars.entityState.MOVELOCKED;
+                            var d = entity.facing();
+                            var dTarget;
+
+                            if (d === chips.util.dir.SOUTH) {
+                                dTarget = chips.util.dir.WEST;
+                            } else if (d === chips.util.dir.EAST) {
+                                dTarget = chips.util.dir.NORTH;
+                            } else {
+                                dTarget = d;
+                            }
+
+                            if (chips.util.detectCollision(entity, "barrier", dTarget)) {
+                                entity.slide(chips.util.dir.back(d));
+                            } else {
+                                entity.slide(dTarget);
+                            }
+                        }
+                        return true;
+                    }
+                }
+            }
         },
         WATER : {
             "type" : "floor",
@@ -268,7 +416,7 @@ chips.data = {
                     "interactive" : function(player) {
                         var l = chips.draw.LAYER.CHIP;
 
-                        if (player.inventory.items["FLIPPER"].quantity > 0) {
+                        if (player.hasItem("FLIPPER")) {
                             player.swim(true);
                             return true;
                         } else {
@@ -277,7 +425,7 @@ chips.data = {
                         }
                     },
                     "state" : function(player) {
-                        if (player.inventory.items["FLIPPER"].quantity === 0) {
+                        if (!player.hasItem("FLIPPER")) {
                             player.kill("Chip can't swim without flippers!");
                             return true;
                         }
@@ -322,7 +470,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "interactive" : function(player) {
-                        if (player.inventory.items["BOOT"].quantity === 0) {
+                        if (!player.hasItem("BOOT")) {
                             chips.g.cam.setChipsTileLayer(chips.draw.LAYER.CHIP, chips.g.tiles.CHIP_BURNT);
                             return true;
                         } else {
@@ -330,7 +478,7 @@ chips.data = {
                         }
                     },
                     "state" : function(player) {
-                        if (player.inventory.items["BOOT"].quantity === 0) {
+                        if (!player.hasItem("BOOT")) {
                             player.kill("Chip can't walk on fire without boots!");
                             return true;
                         }
@@ -358,7 +506,30 @@ chips.data = {
         },
         ICE : {
             "type" : "floor",
-            "value" : 32
+            "value" : 32,
+            "collision" : {
+                "all" : {
+                    "unload" : function(entity) {
+                        entity.setState(chips.vars.entityState.SLIDING, false);
+                        entity.setState(chips.vars.entityState.MOVELOCKED, false);
+                        return true;
+                    },
+                    "interactive" : function(entity) {
+                        if (entity.hasItem("SKATE")) {
+                            return true;
+                        } else {
+                            entity.state = chips.vars.entityState.SLIDING + chips.vars.entityState.MOVELOCKED;
+                            var d = entity.facing();
+                            if (chips.util.detectCollision(entity, "barrier", d)) {
+                                entity.slide(chips.util.dir.back(d));
+                            } else {
+                                entity.slide();
+                            }
+                        }
+                        return true;
+                    }
+                }
+            }
         },
         FORCE_FLOOR_RANDOM : {
             "type" : "floor",
@@ -612,7 +783,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "barrier" : function(player) {
-                        return !player.inventory.items["KEY_BLUE"].quantity;
+                        return !player.hasItem("KEY_BLUE");
                     },
                     "interactive" : function(player) {
                         player.inventory.removeItem("KEY_BLUE");
@@ -633,7 +804,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "barrier" : function(player) {
-                        return !player.inventory.items["KEY_RED"].quantity;
+                        return !player.hasItem("KEY_RED");
                     },
                     "interactive" : function(player) {
                         player.inventory.removeItem("KEY_RED");
@@ -654,7 +825,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "barrier" : function(player) {
-                        return !player.inventory.items["KEY_YELLOW"].quantity;
+                        return !player.hasItem("KEY_YELLOW");
                     },
                     "interactive" : function(player) {
                         player.inventory.removeItem("KEY_YELLOW");
@@ -675,7 +846,7 @@ chips.data = {
             "collision" : {
                 "player" : {
                     "barrier" : function(player) {
-                        return !player.inventory.items["KEY_GREEN"].quantity;
+                        return !player.hasItem("KEY_GREEN");
                     },
                     "interactive" : function(player) {
                         // Green keys are not consumed on unlock - no item to remove

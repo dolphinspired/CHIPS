@@ -5,13 +5,16 @@
 chips.g = {
     frame : 0,
     state : 0,
-    debug : 1,
     turnTime : 100,
 
     keylock : 0,
     moveStreakStart : -1,
     lastMoveTurn : -1,
     oddStep : 0,
+
+    debug : 1,
+    logRequests : 1,
+    excludeRequestsFromLogging : ["updateDebug", "updateTime", "drawPauseScreen"],
 
     loop : {},
     cam : {}, // Current Active Map

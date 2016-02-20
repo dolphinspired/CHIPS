@@ -88,7 +88,6 @@ chips.map = {
         };
 
         this.monsters = {};
-        chips.vars.requests.add("syncMonsterList"); // Finds the map's enemies and loads them into the monster list
 
         /*************************/
         /* SUPPORTING LEVEL DATA */
@@ -104,7 +103,16 @@ chips.map = {
         /**********************************************/
 
         this.tickAllMonsters = function() {
-            var thisMonster, monsters = this.monsters.getAll();
+            var thisMonster, monsters;
+
+            try {
+                monsters = this.monsters.getAll();
+            } catch (e) {
+                this.monsters = new chips.obj.MonsterList();
+                this.monsters.sync();
+                monsters = this.monsters.getAll();
+            }
+
             for (var monster in monsters) {
                 if (!monsters.hasOwnProperty(monster)) { continue; }
                 thisMonster = monsters[monster];
@@ -210,8 +218,8 @@ chips.map = {
         };
 
         this.setTile = function (x, y, tile) {
-            chips.vars.requests.add("updateMap");
             this.board[y][x] = tile;
+            chips.vars.requests.add("updateMap"); // TODO: Optimize by only updating when something changes
             return this.getTile(x, y);
         };
 

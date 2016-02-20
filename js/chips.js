@@ -32,12 +32,10 @@ $(document).ready(function() {
 chips.main = function() {
 
     // For code that does not need to run every frame
-    if (chips.vars.requests.pending.length > 0) { chips.vars.requests.process(); }
+    if (chips.vars.requests.pendingRequests.length > 0) { chips.vars.requests.process(); }
 
     // tick for keydrown library
     kd.tick();
-
-    chips.g.cam.updateTurn();
 
     if (chips.g.cam && chips.g.cam.elapsedTime.tick()) {
         chips.g.cam.decrementTime();

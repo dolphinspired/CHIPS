@@ -187,6 +187,11 @@ chips.util = {
         return retArray;
     },
 
+    // bitPlace === entityState.VALUE
+    getBit : function(num, bitPlace) {
+        return Math.floor(num / (Math.pow(2, bitPlace-1)) % 2);
+    },
+
     getKeyByValue : function(obj, value, valueField, returnWholeObject) {
         var r = (returnWholeObject || false);
 
@@ -216,9 +221,9 @@ chips.util = {
     },
 
     detectCollision : function(entity, type, direction, distantX, distantY) {
-        var d = (direction || entity.facing()), // If no direction specified, use the enemy's facing as direction (forward)
-            x = (distantX || entity.x),// An x,y will be specified during a look-ahead for a teleport
-            y = (distantY || entity.y);
+        var d = (typeof direction == "undefined" ? entity.facing() : direction), // If no direction specified, use the enemy's facing as direction (forward)
+            x = (typeof distantX == "undefined" ? entity.x : distantX),// An x,y will be specified during a look-ahead for a teleport
+            y = (typeof distantY == "undefined" ? entity.y : distantY);
         var distance = (type === "barrier" ? 1 : 0); // If type barrier, get next tile, else get this tile
 
         if (type === "barrier" && this.edgeCollision(x, y, direction)) { return true; } // If edge of map, that's an immediate barrier
@@ -258,6 +263,40 @@ chips.util = {
         }
 
         return floorCollision || itemCollision || monsterCollision;
+    },
+
+    arrayDeepCopy : function(array) {
+        var ret = [];
+
+        var i;
+        for (i = 0; i < array.length; i++) {
+            ret[i] = array[i];
+        }
+
+        return ret;
+    },
+
+    arrayDeepCopy2d : function(array) {
+        var ret = [];
+
+        var i, j;
+        for (i = 0; i < array.length; i++) {
+            ret[i] = [];
+            for (j = 0; j < array[i].length; j++) {
+                ret[i][j] = array[i][j];
+            }
+        }
+
+        return ret;
+    },
+
+    arrayContains : function(array, element) {
+        for (var i = 0; i < array.length; i++) {
+            if (array[i] === element) {
+                return true;
+            }
+        }
+        return false;
     }
 };
 

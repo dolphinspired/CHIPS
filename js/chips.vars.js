@@ -93,7 +93,7 @@ chips.vars = {
         DELETE: 46
     },
 
-    states : {
+    gameState : {
         FIRSTLOAD : 0,
 
         TITLE : 100,
@@ -107,12 +107,17 @@ chips.vars = {
         GAME_SUCCESS : 900
     },
 
+    entityState : {
+        FREE : 0,
+        SLIDING : 1,        // Movement is forced forward
+        MOVELOCKED : 2      // Player movement input is ignored
+    },
+
     requests : {
         GameRequest : function(func) {
             this.action = func;
 
             this.reset = function() {
-                this.pending = 0;
                 this.state = 0;
                 this.args = [];
             };
@@ -121,8 +126,7 @@ chips.vars = {
         },
         add : function(req, args) {
             try {
-                this[req].pending++;
-                if (args) {
+                if (args && typeof args[0] != "undefined") {
                     for (var i = 0; i < args.length; i++) {
                         this[req].args[this[req].args.length] = args[i];
                     }
@@ -132,17 +136,33 @@ chips.vars = {
                 if (chips.g.debug) { debugger; }
             }
 
-            this.pending[this.pending.length] = req;
+            this.pendingRequests[this.pendingRequests.length] = req;
+
+            if (chips.g.logRequests && !chips.util.arrayContains(chips.g.excludeRequestsFromLogging, req)) {
+                var msg = "Request \"" + req + "\" added on t" + (chips.g.cam.turn || -1) + "/f" + (chips.g.frame);
+                if (args) {
+                    msg += "\nArgs: [" + args + "]";
+                }
+                console.log(msg);
+                if (req === "moveOnNextTurn" && typeof args[0] == "undefined") { debugger; }
+            }
         },
         process : function() {
-            for (var i = 0; i < this.pending.length; i++) {
-                if (this[this.pending[i]].pending > 0) {
-                    this[this.pending[i]].action();
+            var activeRequests = chips.util.arrayDeepCopy(this.pendingRequests);
+            var processedRequests = [];
+            this.pendingRequests = [];
+
+            for (var i = 0; i < activeRequests.length; i++) {
+                if (!chips.util.arrayContains(processedRequests, activeRequests[i])) {
+                    this[activeRequests[i]].action();
+                    processedRequests[processedRequests.length] = activeRequests[i];
                 }
             }
-            this.pending = [];
+
+            // Find any requests still pending and add them back
         },
-        pending : [],
+
+        pendingRequests : [],
 
         init : function() {
             this["loadLevel"] = new this.GameRequest(function() {
@@ -151,10 +171,6 @@ chips.vars = {
             });
             this["startChipsFacingResetDelay"] = new this.GameRequest(function() {
                 chips.g.cam.chipsFacingReset = chips.vars.chipsFacingResetDelay;
-                this.reset();
-            });
-            this["dialog"] = new this.GameRequest(function() {
-                drawDialogBox(requests[i+1]);
                 this.reset();
             });
             this["updateGameframe"] = new this.GameRequest(function() {
@@ -198,7 +214,6 @@ chips.vars = {
                     chips.draw.gameFrame();
                     chips.draw.hud();
                 }
-                this.pending = 0;
                 this.args = [];
             });
             this["redrawAll"] = new this.GameRequest(function() {
@@ -227,29 +242,42 @@ chips.vars = {
                 this.reset();
             });
             this["startMovingChip"] = new this.GameRequest(function() {
+                // Do not start moving if the game is paused or if chip is "movelocked" (i.e., sliding on ice)
                 if (!chips.g.cam.elapsedTime.paused) {
                     if (chips.g.moveStreakStart < 0) { // First move in this streak
-                        chips.g.cam.player.move(this.args[0]);
+                        chips.g.cam.player.move(this.args[0], this.args[1]);
                         chips.g.moveStreakStart = chips.g.cam.turn;
-                        chips.g.lastMoveTurn = chips.g.moveStreakStart;
+                        chips.g.cam.player.lastAction = chips.g.moveStreakStart;
                         chips.g.oddStep = chips.g.moveStreakStart % 2; // 0 (false) if even, 1 (true) if odd
                     } else { // Other moves in this streak
-                        var moveTurnDiff = chips.g.cam.turn - chips.g.lastMoveTurn;
+                        var moveTurnDiff = chips.g.cam.turn - chips.g.cam.player.lastAction;
                         var thisChip = chips.g.tLookup[chips.g.cam.getChipsTileLayer(chips.draw.LAYER.CHIP)];
                         if (moveTurnDiff >= chips.data.tiles[thisChip].speed) {
-                            chips.g.cam.player.move(this.args[0]);
-                            chips.g.lastMoveTurn = chips.g.cam.turn;
+                            chips.g.cam.player.move(this.args[0], this.args[1]);
+                            chips.g.cam.player.lastAction = chips.g.cam.turn;
                         }
                     }
                 }
-
-                this.reset();
             });
             this["stopMovingChip"] = new this.GameRequest(function() {
                 if (chips.g.keylock === 0) {
                     chips.g.moveStreakStart = -1; // reset move streak only if no other keys are held down (arrow keys only?)
                 }
-                this.reset();
+            });
+            this["moveOnNextTurn"] = new this.GameRequest(function() {
+                var entity = this.args[0], d = this.args[1], changeDirection = this.args[2];
+                try {
+                    if (entity.lastAction < chips.g.cam.turn) {
+                        chips.vars.requests.add("startMovingChip", [d, changeDirection]); // TODO: This won't work for enemies!
+                    } else {
+                        this.reset();
+                        chips.vars.requests.add("moveOnNextTurn", [entity, d, changeDirection]);
+                    }
+                } catch (e) {
+                    if (chips.g.debug) { debugger; }
+                }
+
+
             });
         }
     }

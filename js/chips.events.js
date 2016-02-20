@@ -31,7 +31,9 @@ chips.events = {
          *-----------------------------------*/
 
         kd.UP.down( function(e) {
-            chips.vars.requests.add("startMovingChip", [chips.util.dir.NORTH]);
+            if (!chips.g.cam.player.getState(chips.vars.entityState.MOVELOCKED)) {
+                chips.vars.requests.add("startMovingChip", [chips.util.dir.NORTH]);
+            }
             chips.events.keydownCommon("UP");
         });
 
@@ -45,7 +47,9 @@ chips.events = {
          *-----------------------------------*/
 
         kd.DOWN.down( function(e) {
-            chips.vars.requests.add("startMovingChip", [chips.util.dir.SOUTH]);
+            if (!chips.g.cam.player.getState(chips.vars.entityState.MOVELOCKED)) {
+                chips.vars.requests.add("startMovingChip", [chips.util.dir.SOUTH]);
+            }
             chips.events.keydownCommon("DOWN");
         });
 
@@ -59,7 +63,9 @@ chips.events = {
          *-----------------------------------*/
 
         kd.LEFT.down( function() {
-            chips.vars.requests.add("startMovingChip", [chips.util.dir.WEST]);
+            if (!chips.g.cam.player.getState(chips.vars.entityState.MOVELOCKED)) {
+                chips.vars.requests.add("startMovingChip", [chips.util.dir.WEST]);
+            }
             chips.events.keydownCommon("LEFT");
         });
 
@@ -73,7 +79,9 @@ chips.events = {
          *-----------------------------------*/
 
         kd.RIGHT.down( function() {
-            chips.vars.requests.add("startMovingChip", [chips.util.dir.EAST]);
+            if (!chips.g.cam.player.getState(chips.vars.entityState.MOVELOCKED)) {
+                chips.vars.requests.add("startMovingChip", [chips.util.dir.EAST]);
+            }
             chips.events.keydownCommon("RIGHT");
         });
 
