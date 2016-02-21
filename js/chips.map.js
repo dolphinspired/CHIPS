@@ -7,22 +7,22 @@ chips.map = {
     load : {
         level : function(num) {
             chips.g.cam = new chips.map.ActiveMap(num);
-            chips.vars.requests.add("redrawAll");
+            chips.commands.setBy.frame(0, "redrawAll");
             chips.g.cam.view.update();
             return true;
         },
         nextLevel : function() {
             if (chips.g.cam.number < chips.g.cls.meta.size) {
-                chips.vars.requests.add("loadLevel", [chips.g.cam.number + 1]);
+                chips.commands.setBy.frame(0, "loadLevel", [chips.g.cam.number + 1]);
             } else {
-                chips.vars.requests.add("loadLevel", [1]); // TODO: Show a victory screen
+                chips.commands.setBy.frame(0, "loadLevel", [1]); // TODO: Show a victory screen
             }
         },
         prevLevel : function() {
             if (chips.g.cam.number > 1) {
-                chips.vars.requests.add("loadLevel", [chips.g.cam.number - 1]);
+                chips.commands.setBy.frame(0, "loadLevel", [chips.g.cam.number - 1]);
             } else {
-                chips.vars.requests.add("loadLevel", [chips.g.cls.meta.size]);
+                chips.commands.setBy.frame(0, "loadLevel", [chips.g.cls.meta.size]);
                 // Makes the assumption that numbers in levelset are ordered sequentially
             }
         }
@@ -116,10 +116,10 @@ chips.map = {
             for (var monster in monsters) {
                 if (!monsters.hasOwnProperty(monster)) { continue; }
                 thisMonster = monsters[monster];
-                if (chips.data.tiles[thisMonster.name].speed && this.turn % chips.data.tiles[thisMonster.name].speed === 0) {
+                if (chips.g.rules[thisMonster.name].speed && this.turn % chips.g.rules[thisMonster.name].speed === 0) {
                     // Actions and Behaviors are mutually exclusive on any given turn
                     if (!monsters[monster].performAction()) {
-                        chips.data.tiles[thisMonster.name].behavior(monsters[monster]);
+                        chips.g.rules[thisMonster.name].behavior(monsters[monster]);
                     }
                 }
             }
@@ -128,7 +128,7 @@ chips.map = {
         this.updateTurn = function() {
             if (this.elapsedTime.elapsed_ms - (this.turn * chips.g.turnTime) > this.turn) {
                 this.turn++;
-                chips.vars.requests.add("updateDebug");
+                chips.commands.setBy.frame(0, "updateDebug");
                 if (this.chipsFacingReset > 0) {
                     this.chipsFacingReset--;
                     if (this.chipsFacingReset === 0) {
@@ -149,7 +149,7 @@ chips.map = {
                 this.player.kill("Out of time!");
             }
 
-            chips.vars.requests.add("updateTime");
+            chips.commands.setBy.frame(0, "updateTime");
 
             if (this.elapsedTime) {
 
@@ -164,7 +164,7 @@ chips.map = {
         this.setChipsLeft = function(newChipsLeft) {
             if (newChipsLeft >= 0) {
                 this.chipsLeft = newChipsLeft;
-                chips.vars.requests.add("updateChipsLeft");
+                chips.commands.setBy.frame(0, "updateChipsLeft");
             }
         };
 
@@ -219,7 +219,7 @@ chips.map = {
 
         this.setTile = function (x, y, tile) {
             this.board[y][x] = tile;
-            chips.vars.requests.add("updateMap"); // TODO: Optimize by only updating when something changes
+            chips.commands.setBy.frame(0, "updateMap"); // TODO: Optimize by only updating when something changes
             return this.getTile(x, y);
         };
 
@@ -373,7 +373,7 @@ chips.map = {
             // TODO: in lieu of a dialog box...
             var retStr = "<span style='color:red'>Hooray, you completed Level " + this.number;
             retStr += this.timeLeft > 0 ? " with a time of " + this.timeLeft + " seconds!" : "!";
-            chips.vars.requests.add("setGameMessage", [retStr]);
+            chips.commands.setBy.frame(0, "setGameMessage", [retStr]);
             chips.map.load.nextLevel();
         };
 

@@ -229,9 +229,9 @@ chips.util = {
         if (type === "barrier" && this.edgeCollision(x, y, direction)) { return true; } // If edge of map, that's an immediate barrier
 
         try {
-            var floorData = chips.data.tiles[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.FLOOR)]];
-            var itemData = chips.data.tiles[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.ITEM)]];
-            var monsterData = chips.data.tiles[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.MONSTER)]];
+            var floorData = chips.g.rules[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.FLOOR)]];
+            var itemData = chips.g.rules[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.ITEM)]];
+            var monsterData = chips.g.rules[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.MONSTER)]];
 
             var floorCollision, itemCollision, monsterCollision;
 

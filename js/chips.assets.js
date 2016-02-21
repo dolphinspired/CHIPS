@@ -67,11 +67,11 @@ chips.assets = {
         },
         data : function() {
             chips.assets.getLevelset("Test");
-            chips.vars.requests.init();
-            chips.vars.requests.add("setGameMessage", [chips.vars.defaultGameMessage]);
-            chips.vars.requests.add("loadLevel", [1]); // This won't get called until all assets are loaded anyway
-            chips.vars.requests.add("redrawAll"); // Is this necessary?
-            chips.vars.requests.add("initEvents");
+            chips.commands.init();
+            chips.commands.setBy.frame(0, "setGameMessage", [chips.vars.defaultGameMessage]);
+            chips.commands.setBy.frame(0, "loadLevel", [1]); // This won't get called until all assets are loaded anyway
+            chips.commands.setBy.frame(0, "redrawAll"); // Is this necessary?
+            chips.commands.setBy.frame(0, "initEvents");
         }
     },
 

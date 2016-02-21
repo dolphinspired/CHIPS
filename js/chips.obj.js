@@ -32,16 +32,16 @@ chips.obj = (function() {
         }
     };
 
-    var Inventory = function(tData) {
+    var Inventory = function(ruleset) {
         this.items = {};
 
-        for (var i in tData) {
-            if (!tData.hasOwnProperty(i)) { continue; }
-            if (tData[i].type === "item" && tData[i].inventory && tData[i].inventory.slot >= 0) {
+        for (var i in ruleset) {
+            if (!ruleset.hasOwnProperty(i)) { continue; }
+            if (ruleset[i].type === "item" && ruleset[i].inventory && ruleset[i].inventory.slot >= 0) {
                 this.items[i] = {
                     "name" : i,
                     "quantity" : 0,
-                    "slot" : tData[i].inventory.slot
+                    "slot" : ruleset[i].inventory.slot
                 }
             }
         }
@@ -52,7 +52,7 @@ chips.obj = (function() {
 
         addItem : function(item) {
             this.items[item].quantity++;
-            chips.vars.requests.add("updateInventory");
+            chips.commands.setBy.frame(0, "updateInventory");
         },
 
         removeItem : function(item, removeAll) {
@@ -61,7 +61,7 @@ chips.obj = (function() {
             } else if (this.items[item].quantity > 0) {
                 this.items[item].quantity--;
             }
-            chips.vars.requests.add("updateInventory");
+            chips.commands.setBy.frame(0, "updateInventory");
         }
     };
 
@@ -88,7 +88,7 @@ chips.obj = (function() {
 
         this.forcePause = function() {
             this.paused = Date.now();
-            chips.vars.requests.add("drawPauseScreen");
+            chips.commands.setBy.frame(0, "drawPauseScreen");
             this.paused_forced = true;
         };
 
@@ -101,10 +101,10 @@ chips.obj = (function() {
             if (!this.paused_forced) {
                 if (this.paused) {
                     this.paused = 0;
-                    chips.vars.requests.add("redrawAll");
+                    chips.commands.setBy.frame(0, "redrawAll");
                 } else {
                     this.paused = Date.now();
-                    chips.vars.requests.add("drawPauseScreen");
+                    chips.commands.setBy.frame(0, "drawPauseScreen");
                 }
             }
         };
@@ -177,7 +177,7 @@ chips.obj = (function() {
         this.lastAction = 0;
 
         this.speed = function() {
-            return chips.data.tiles[this.name].speed;
+            return chips.g.rules[this.name].speed;
         };
 
         this.facing = function() {
@@ -220,7 +220,7 @@ chips.obj = (function() {
 
         addPattern : function(patternName, interruptCurrentPattern) {
             var interrupt = (interruptCurrentPattern || false);
-            var pattern = chips.data.tiles[this.name].triggers.patterns[patternName];
+            var pattern = chips.g.rules[this.name].triggers.patterns[patternName];
             var i;
 
             // TODO: This might need tweaking if certain actions should be non-interruptable
@@ -245,7 +245,7 @@ chips.obj = (function() {
                 if (this.actionTiming[0] < -1) {
                     this.actionTiming[0]++;
                 } else if (this.actionTiming[0] === -1) {
-                    if (!chips.data.tiles[this.name].triggers.actions[this.actionQueue[0]](this)) {
+                    if (!chips.g.rules[this.name].triggers.actions[this.actionQueue[0]](this)) {
                         this.removeAction();
                     }
                 }
@@ -256,7 +256,7 @@ chips.obj = (function() {
                 if (this.actionTiming[0] > 0) {
                     this.actionTiming[0]--;
                 } else if (this.actionTiming[0] === 0) {
-                    var ret = chips.data.tiles[this.name].triggers.actions[this.actionQueue[0]](this);
+                    var ret = chips.g.rules[this.name].triggers.actions[this.actionQueue[0]](this);
                     this.removeAction();
                 }
 
@@ -310,7 +310,7 @@ chips.obj = (function() {
         this.lastAction = 0;
 
         this.speed = function() {
-            return chips.data.tiles[this.name].speed;
+            return chips.g.rules[this.name].speed;
         };
 
         this.facing = function() {
@@ -320,7 +320,7 @@ chips.obj = (function() {
 
         // PLAYER-SPECIFIC
 
-        this.inventory = new Inventory(chips.data.tiles);
+        this.inventory = new Inventory(chips.g.rules);
     };
 
     Player.prototype = {
@@ -368,9 +368,9 @@ chips.obj = (function() {
 
         kill : function(msg) {
             if (!msg) { msg = "Oh dear, you are dead!" }
-            chips.vars.requests.add("setGameMessage", [msg]); // TODO: Enhance
+            chips.commands.setBy.frame(0, "setGameMessage", [msg]); // TODO: Enhance
             chips.g.cam.reset();
-            chips.vars.requests.add("redrawAll");
+            chips.commands.setBy.frame(0, "redrawAll");
         },
 
         swim : function(inWater) {
@@ -442,13 +442,13 @@ chips.obj = (function() {
         },
 
         slide : function(entity, d, changeDirection) {
-            chips.vars.requests.add("moveOnNextTurn", [entity, d, changeDirection]);
+            chips.commands.setBy.frame(0, "moveOnNextTurn", [entity, d, changeDirection]);
             return entity;
         },
 
         teleport : function(entity, x, y) {
             if (chips.x !== x || chips.y !== y) {
-                chips.vars.requests.add("updateMap"); // If entity's location changes, update the map
+                chips.commands.setBy.frame(0, "updateMap"); // If entity's location changes, update the map
             }
             entity.unset();
             entity.x = x;

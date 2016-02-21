@@ -32,7 +32,7 @@ $(document).ready(function() {
 chips.main = function() {
 
     // For code that does not need to run every frame
-    if (chips.vars.requests.pendingRequests.length > 0) { chips.vars.requests.process(); }
+    chips.commands.execute();
 
     // tick for keydrown library
     kd.tick();

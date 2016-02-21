@@ -5,7 +5,7 @@
 chips.g = {
     frame : 0,
     state : 0,
-    turnTime : 100,
+    turnTime : 100, // in ms
 
     keylock : 0,
     moveStreakStart : -1,
@@ -21,6 +21,7 @@ chips.g = {
     cls : {}, // Current Level Set
     tiles : {},
     tLookup : {},
+    rules : {},
 
     last : {
         levelset : "", // Updated in chips.data.loadLevelset()
@@ -30,8 +31,9 @@ chips.g = {
     // Refresh is run automatically when all assets are loaded
     refresh : function() {
         this.cls = chips.data.levels.loaded[this.last.levelset];
-        this.tiles = new chips.obj.TileMap(chips.data.tiles); // TODO: Change all these when tilesets are implemented
-        this.tLookup = new chips.obj.ReverseTileMap(chips.data.tiles);
+        this.tiles = new chips.obj.TileMap(chips.rules[chips.vars.defaultRuleset].data);
+        this.tLookup = new chips.obj.ReverseTileMap(chips.rules[chips.vars.defaultRuleset].data);
+        this.rules = chips.rules[chips.vars.defaultRuleset].data;
 
         if (chips.vars.pauseOnLoseFocus) {
             $(window).on("blur", function(e) {
