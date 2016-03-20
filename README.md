@@ -32,6 +32,8 @@ The beta phase will begin once the game is feature-complete (compared to MS-CC1)
 
 The alpha phase of development will focus on getting all MS-CC1 features into the game and making sure the game controls accurately and, in general, adheres to the [Microsoft Ruleset](http://chipschallenge.wikia.com/wiki/Ruleset#Microsoft_ruleset).
 
+* 0.3.2 - Coding changes. Ice still doesn't work, but the "command" system has been rewritten to hopefully accomodate this effort. I wanted to push a new version since I finally got the game in a working state again.
+  * Fun little side feature: the game now remembers the last level you played (via cookie) and automatically starts you there when the game loads.
 * 0.3.1 - The last build broke block collision, but that is now fixed. I am sure this has broken something else as a result.
   * There was no hotfix for block collision due to various changes, so collision has been significantly rewritten (something I wanted to do anyway). A Player object, Monster objects, etc. It's cleaner now, supposedly.
   * Tanks now better emulate their original behavior on a blue switch press (but they still need some tweaking)

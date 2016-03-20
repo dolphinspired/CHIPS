@@ -14,7 +14,7 @@ chips.g = {
 
     debug : 1,
     logRequests : 1,
-    excludeRequestsFromLogging : ["updateDebug", "updateTime", "drawPauseScreen"],
+    excludeRequestsFromLogging : ["updateDebug", "startMovingChip", "stopMovingChip", "updateMap", "updateTime"],
 
     loop : {},
     cam : {}, // Current Active Map

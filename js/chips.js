@@ -18,6 +18,7 @@ $(document).ready(function() {
     chips.assets.preload.images();
     chips.assets.preload.data();
 
+
     chips.g.loop = window.setInterval(function() {
         chips.g.frame++;
         if (chips.assets.areLoaded) {
@@ -32,12 +33,14 @@ $(document).ready(function() {
 chips.main = function() {
 
     // For code that does not need to run every frame
-    chips.commands.execute();
+    if (chips.commands.schedule.frames) {
+        chips.commands.schedule.frames.execute();
+    }
 
     // tick for keydrown library
     kd.tick();
 
-    if (chips.g.cam && chips.g.cam.elapsedTime.tick()) {
+    if (chips.g.cam && chips.g.cam.elapsedTime && chips.g.cam.elapsedTime.tick()) {
         chips.g.cam.decrementTime();
     }
 };

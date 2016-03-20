@@ -6,23 +6,24 @@ chips.map = {
 
     load : {
         level : function(num) {
+            chips.util.cookie.set("lastLevelPlayed", num, { expires : 30 });
             chips.g.cam = new chips.map.ActiveMap(num);
-            chips.commands.setBy.frame(0, "redrawAll");
+            chips.commands.schedule.frames.set("redrawAll");
             chips.g.cam.view.update();
             return true;
         },
         nextLevel : function() {
             if (chips.g.cam.number < chips.g.cls.meta.size) {
-                chips.commands.setBy.frame(0, "loadLevel", [chips.g.cam.number + 1]);
+                chips.commands.schedule.frames.set("loadLevel", [chips.g.cam.number + 1]);
             } else {
-                chips.commands.setBy.frame(0, "loadLevel", [1]); // TODO: Show a victory screen
+                chips.commands.schedule.frames.set("loadLevel", [1]); // TODO: Show a victory screen
             }
         },
         prevLevel : function() {
             if (chips.g.cam.number > 1) {
-                chips.commands.setBy.frame(0, "loadLevel", [chips.g.cam.number - 1]);
+                chips.commands.schedule.frames.set("loadLevel", [chips.g.cam.number - 1]);
             } else {
-                chips.commands.setBy.frame(0, "loadLevel", [chips.g.cls.meta.size]);
+                chips.commands.schedule.frames.set("loadLevel", [chips.g.cls.meta.size]);
                 // Makes the assumption that numbers in levelset are ordered sequentially
             }
         }
@@ -128,11 +129,11 @@ chips.map = {
         this.updateTurn = function() {
             if (this.elapsedTime.elapsed_ms - (this.turn * chips.g.turnTime) > this.turn) {
                 this.turn++;
-                chips.commands.setBy.frame(0, "updateDebug");
+                chips.commands.schedule.frames.set("updateDebug");
                 if (this.chipsFacingReset > 0) {
                     this.chipsFacingReset--;
                     if (this.chipsFacingReset === 0) {
-                        this.setChipsFacing(chips.util.dir.SOUTH);
+                        this.player.set(chips.g.tiles.CHIP_SOUTH);
                     }
                 }
                 this.tickAllMonsters();
@@ -149,7 +150,7 @@ chips.map = {
                 this.player.kill("Out of time!");
             }
 
-            chips.commands.setBy.frame(0, "updateTime");
+            chips.commands.schedule.frames.set("updateTime");
 
             if (this.elapsedTime) {
 
@@ -164,7 +165,7 @@ chips.map = {
         this.setChipsLeft = function(newChipsLeft) {
             if (newChipsLeft >= 0) {
                 this.chipsLeft = newChipsLeft;
-                chips.commands.setBy.frame(0, "updateChipsLeft");
+                chips.commands.schedule.frames.set("updateChipsLeft");
             }
         };
 
@@ -219,7 +220,7 @@ chips.map = {
 
         this.setTile = function (x, y, tile) {
             this.board[y][x] = tile;
-            chips.commands.setBy.frame(0, "updateMap"); // TODO: Optimize by only updating when something changes
+            chips.commands.schedule.frames.set("updateMap"); // TODO: Optimize by only updating when something changes
             return this.getTile(x, y);
         };
 
@@ -355,25 +356,19 @@ chips.map = {
             return chips.util.getLayerCoord(chips.g.cam.getChipsTileLayer(chips.draw.LAYER.CHIP), 6) % 4;
         };
 
-        this.setChipsFacing = function(d) {
-            var dirName = chips.util.getKeyByValue(chips.util.dir, d);
-            var facedTile = chips.g.tiles["CHIP_" + dirName.toUpperCase()];
-            this.setChipsTileLayer(chips.draw.LAYER.CHIP, facedTile);
-        };
-
         /***************************/
         /* OTHER UTILITY FUNCTIONS */
         /***************************/
 
         this.reset = function() {
-            chips.map.load.level(this.number);
+            chips.commands.schedule.frames.set("loadLevel", [this.number]);
         };
 
         this.win = function() {
             // TODO: in lieu of a dialog box...
             var retStr = "<span style='color:red'>Hooray, you completed Level " + this.number;
             retStr += this.timeLeft > 0 ? " with a time of " + this.timeLeft + " seconds!" : "!";
-            chips.commands.setBy.frame(0, "setGameMessage", [retStr]);
+            chips.commands.schedule.frames.set("setGameMessage", [retStr]);
             chips.map.load.nextLevel();
         };
 

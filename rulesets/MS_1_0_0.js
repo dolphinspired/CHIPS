@@ -235,19 +235,35 @@ chips.rules["MS_1_0_0"] = Object.freeze({
         },
         FORCE_FLOOR_NORTH : {
             "type" : "floor",
-            "value" : 20
+            "value" : 20,
+            "properties" : {
+                "slippery" : true,
+                "forceful" : true
+            }
         },
         FORCE_FLOOR_WEST : {
             "type" : "floor",
-            "value" : 21
+            "value" : 21,
+            "properties" : {
+                "slippery" : true,
+                "forceful" : true
+            }
         },
         FORCE_FLOOR_SOUTH : {
             "type" : "floor",
-            "value" : 22
+            "value" : 22,
+            "properties" : {
+                "slippery" : true,
+                "forceful" : true
+            }
         },
         FORCE_FLOOR_EAST : {
             "type" : "floor",
-            "value" : 23
+            "value" : 23,
+            "properties" : {
+                "slippery" : true,
+                "forceful" : true
+            }
         },
         ICE_WALL_NORTHEAST : {
             "type" : "floor",
@@ -288,6 +304,10 @@ chips.rules["MS_1_0_0"] = Object.freeze({
                         return true;
                     }
                 }
+            },
+            "properties" : {
+                "slippery" : true,
+                "icy" : true
             }
         },
         ICE_WALL_NORTHWEST : {
@@ -329,6 +349,10 @@ chips.rules["MS_1_0_0"] = Object.freeze({
                         return true;
                     }
                 }
+            },
+            "properties" : {
+                "slippery" : true,
+                "icy" : true
             }
         },
         ICE_WALL_SOUTHWEST : {
@@ -370,6 +394,10 @@ chips.rules["MS_1_0_0"] = Object.freeze({
                         return true;
                     }
                 }
+            },
+            "properties" : {
+                "slippery" : true,
+                "icy" : true
             }
         },
         ICE_WALL_SOUTHEAST : {
@@ -411,6 +439,10 @@ chips.rules["MS_1_0_0"] = Object.freeze({
                         return true;
                     }
                 }
+            },
+            "properties" : {
+                "slippery" : true,
+                "icy" : true
             }
         },
         WATER : {
@@ -518,31 +550,33 @@ chips.rules["MS_1_0_0"] = Object.freeze({
             "value" : 32,
             "collision" : {
                 "all" : {
-                    "unload" : function(entity) {
-                        entity.setState(chips.vars.entityState.SLIDING, false);
-                        entity.setState(chips.vars.entityState.MOVELOCKED, false);
-                        return true;
-                    },
                     "interactive" : function(entity) {
                         if (entity.hasItem("SKATE")) {
                             return true;
                         } else {
-                            entity.state = chips.vars.entityState.SLIDING + chips.vars.entityState.MOVELOCKED;
                             var d = entity.facing();
-                            if (chips.util.detectCollision(entity, "barrier", d)) {
-                                entity.slide(chips.util.dir.back(d));
+                            if (!chips.util.detectCollision(entity, "barrier", d)) {
+                                entity.slide(d);
                             } else {
-                                entity.slide();
+                                entity.slide(chips.util.dir.back(d));
                             }
                         }
                         return true;
                     }
                 }
+            },
+            "properties" : {
+                "slippery" : true,
+                "icy" : true
             }
         },
         FORCE_FLOOR_RANDOM : {
             "type" : "floor",
-            "value" : 33
+            "value" : 33,
+            "properties" : {
+                "slippery" : true,
+                "forceful" : true
+            }
         },
         GRAVEL : {
             "type" : "floor",
@@ -621,12 +655,12 @@ chips.rules["MS_1_0_0"] = Object.freeze({
             "collision" : {
                 "player" : {
                     "unload" : function(player) {
-                        chips.commands.setBy.frame(0, "toggleHint", [0]);
-                        chips.commands.setBy.frame(0, "redrawAll"); // Not sure why, but this is necessary
+                        chips.commands.schedule.frames.set("toggleHint", [0]);
+                        chips.commands.schedule.frames.set("redrawAll"); // Not sure why, but this is necessary
                         return true;
                     },
                     "interactive" : function(player) {
-                        chips.commands.setBy.frame(0, "toggleHint", [1]);
+                        chips.commands.schedule.frames.set("toggleHint", [1]);
                         return true;
                     }
                 }

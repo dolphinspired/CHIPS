@@ -297,6 +297,54 @@ chips.util = {
             }
         }
         return false;
+    },
+
+    cookie : {
+        get : function(name) {
+            var cookieObject = this.parse();
+            for (var cookie in cookieObject) {
+                if (!cookieObject.hasOwnProperty(cookie)) { continue; }
+                else if (cookie === name) {
+                    return cookieObject[cookie];
+                }
+            }
+            // If no cookie exists, return undefined
+        },
+        set : function(name, value, argumentObject) {
+            var toSet = name + "=" + value;
+            var args = (argumentObject || {});
+            for (var arg in args) {
+                if (!args.hasOwnProperty(arg)) { continue; }
+
+                // Shortcut to setting a number of days to live for a cookie
+                if (arg === "expires" && typeof args[arg] == "number") {
+                    var now = new Date();
+                    var time = now.getTime();
+                    var ms = args[arg] * 86400000;
+                    now.setTime(time + ms);
+                    args[arg] = now.toUTCString();
+                }
+
+                toSet += "; " + arg + "=" + args[arg];
+            }
+            document.cookie = toSet;
+            return toSet;
+        },
+        // Note that "clear" means it will persist (with value = "") only until the page is closed/refreshed
+        clear : function (name) {
+            this.set(name, "", { expires : -30 });
+            return true;
+        },
+        parse : function(cookieString) {
+            var toSplit = (cookieString || document.cookie);
+            var whole = toSplit.split("; ");
+            var cookies = {}, pieces;
+            for (var i = 0; i < whole.length; i++) {
+                pieces = whole[i].split("=");
+                cookies[pieces[0]] = pieces[1];
+            }
+            return cookies;
+        }
     }
 };
 
