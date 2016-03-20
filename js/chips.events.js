@@ -32,13 +32,13 @@ chips.events = {
 
         kd.UP.down( function(e) {
             if (!chips.g.cam.player.getState(chips.vars.entityState.MOVELOCKED)) {
-                chips.commands.setBy.frame(0, "startMovingChip", [chips.util.dir.NORTH]);
+                chips.commands.schedule.frames.set("startMovingChip", [chips.util.dir.NORTH]);
             }
             chips.events.keydownCommon("UP");
         });
 
         kd.UP.up( function(e) {
-            chips.commands.setBy.frame(0, "stopMovingChip");
+            chips.commands.schedule.frames.set("stopMovingChip");
             chips.events.keyupCommon("UP");
         });
 
@@ -48,13 +48,13 @@ chips.events = {
 
         kd.DOWN.down( function(e) {
             if (!chips.g.cam.player.getState(chips.vars.entityState.MOVELOCKED)) {
-                chips.commands.setBy.frame(0, "startMovingChip", [chips.util.dir.SOUTH]);
+                chips.commands.schedule.frames.set("startMovingChip", [chips.util.dir.SOUTH]);
             }
             chips.events.keydownCommon("DOWN");
         });
 
         kd.DOWN.up( function() {
-            chips.commands.setBy.frame(0, "stopMovingChip");
+            chips.commands.schedule.frames.set("stopMovingChip");
             chips.events.keyupCommon("DOWN");
         });
 
@@ -64,13 +64,13 @@ chips.events = {
 
         kd.LEFT.down( function() {
             if (!chips.g.cam.player.getState(chips.vars.entityState.MOVELOCKED)) {
-                chips.commands.setBy.frame(0, "startMovingChip", [chips.util.dir.WEST]);
+                chips.commands.schedule.frames.set("startMovingChip", [chips.util.dir.WEST]);
             }
             chips.events.keydownCommon("LEFT");
         });
 
         kd.LEFT.up( function() {
-            chips.commands.setBy.frame(0, "stopMovingChip");
+            chips.commands.schedule.frames.set("stopMovingChip");
             chips.events.keyupCommon("LEFT");
         });
 
@@ -80,13 +80,13 @@ chips.events = {
 
         kd.RIGHT.down( function() {
             if (!chips.g.cam.player.getState(chips.vars.entityState.MOVELOCKED)) {
-                chips.commands.setBy.frame(0, "startMovingChip", [chips.util.dir.EAST]);
+                chips.commands.schedule.frames.set("startMovingChip", [chips.util.dir.EAST]);
             }
             chips.events.keydownCommon("RIGHT");
         });
 
         kd.RIGHT.up( function() {
-            chips.commands.setBy.frame(0, "stopMovingChip");
+            chips.commands.schedule.frames.set("stopMovingChip");
             chips.events.keyupCommon("RIGHT");
         });
 
@@ -127,7 +127,7 @@ chips.events = {
         kd.R.down( function() {
             if (chips.g.keylock === 0 && kd.SHIFT.isDown()){
                 chips.g.cam.reset();
-                chips.commands.setBy.frame(0, "redrawAll");
+                chips.commands.schedule.frames.set("redrawAll");
             }
             chips.events.keydownCommon();
         });
@@ -155,7 +155,7 @@ chips.events = {
     keydownCommon : function(key) {
         chips.g.keylock++;
         this.keysDown[key]++;
-        if (chips.g.debug) { chips.commands.setBy.frame(0, "updateDebug"); }
+        if (chips.g.debug) { chips.commands.schedule.frames.set("updateDebug"); }
     },
 
     keyupCommon : function(key) {
@@ -163,7 +163,7 @@ chips.events = {
         if (!this.anotherArrowKeyIsDown(key)) {
             chips.g.keylock = 0;
         }
-        if (chips.g.debug) { chips.commands.setBy.frame(0, "updateDebug"); }
+        if (chips.g.debug) { chips.commands.schedule.frames.set("updateDebug"); }
     },
 
     anotherArrowKeyIsDown : function(k) {

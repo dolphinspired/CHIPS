@@ -52,7 +52,7 @@ chips.obj = (function() {
 
         addItem : function(item) {
             this.items[item].quantity++;
-            chips.commands.setBy.frame(0, "updateInventory");
+            chips.commands.schedule.frames.set("updateInventory");
         },
 
         removeItem : function(item, removeAll) {
@@ -61,7 +61,7 @@ chips.obj = (function() {
             } else if (this.items[item].quantity > 0) {
                 this.items[item].quantity--;
             }
-            chips.commands.setBy.frame(0, "updateInventory");
+            chips.commands.schedule.frames.set("updateInventory");
         }
     };
 
@@ -88,7 +88,7 @@ chips.obj = (function() {
 
         this.forcePause = function() {
             this.paused = Date.now();
-            chips.commands.setBy.frame(0, "drawPauseScreen");
+            chips.commands.schedule.frames.set("drawPauseScreen");
             this.paused_forced = true;
         };
 
@@ -101,10 +101,10 @@ chips.obj = (function() {
             if (!this.paused_forced) {
                 if (this.paused) {
                     this.paused = 0;
-                    chips.commands.setBy.frame(0, "redrawAll");
+                    chips.commands.schedule.frames.set("redrawAll");
                 } else {
                     this.paused = Date.now();
-                    chips.commands.setBy.frame(0, "drawPauseScreen");
+                    chips.commands.schedule.frames.set("drawPauseScreen");
                 }
             }
         };
@@ -202,6 +202,10 @@ chips.obj = (function() {
 
         setState : function(stateToChange, targetState) {
             return Entity.setState(this, stateToChange, targetState);
+        },
+
+        updateState : function() {
+            return Entity.updateState(this);
         },
 
         hasItem : function(item) {
@@ -334,6 +338,10 @@ chips.obj = (function() {
             return Entity.setState(this, stateToChange, targetState);
         },
 
+        updateState : function() {
+            return Entity.updateState(this);
+        },
+
         hasItem : function(item) {
             return this.inventory.items[item].quantity > 0;
         },
@@ -368,9 +376,9 @@ chips.obj = (function() {
 
         kill : function(msg) {
             if (!msg) { msg = "Oh dear, you are dead!" }
-            chips.commands.setBy.frame(0, "setGameMessage", [msg]); // TODO: Enhance
+            chips.commands.schedule.frames.set("setGameMessage", [msg]); // TODO: Enhance
             chips.g.cam.reset();
-            chips.commands.setBy.frame(0, "redrawAll");
+            chips.commands.schedule.frames.set("redrawAll");
         },
 
         swim : function(inWater) {
@@ -419,6 +427,7 @@ chips.obj = (function() {
             }
 
             var cd = (changeDirection || true);
+            var retVal;
 
             if (cd) {
                 entity.turn(d); // Updates entity.tile during the turn
@@ -435,20 +444,23 @@ chips.obj = (function() {
                 entity.set();
                 chips.util.detectCollision(entity, "interactive", d);
                 entity.lastAction = chips.g.cam.turn;
-                return entity;
+                retVal = entity;
             } else {
-                return false;
+                retVal = false;
             }
+
+            entity.updateState();
+            return retVal;
         },
 
         slide : function(entity, d, changeDirection) {
-            chips.commands.setBy.frame(0, "moveOnNextTurn", [entity, d, changeDirection]);
+            chips.commands.schedule.turns.set("forceMove", [entity, d, changeDirection], 1);
             return entity;
         },
 
         teleport : function(entity, x, y) {
             if (chips.x !== x || chips.y !== y) {
-                chips.commands.setBy.frame(0, "updateMap"); // If entity's location changes, update the map
+                chips.commands.schedule.frames.set("updateMap"); // If entity's location changes, update the map
             }
             entity.unset();
             entity.x = x;
@@ -486,18 +498,44 @@ chips.obj = (function() {
                 entity.state += stateToChange;
             }
             return true;
+        },
+
+        updateState : function(entity) {
+            try {
+                var thisTile = chips.g.tLookup[chips.g.cam.getTileLayer(entity.x, entity.y, chips.draw.LAYER.FLOOR)];
+                var thisTileProperties = chips.g.rules[thisTile].properties;
+                var tempState;
+
+                // 1: Item-based states
+                // TODO: This could be more modular
+                tempState = entity.hasItem("SKATE");
+                entity.setState(chips.vars.entityState.ICEPROOF, tempState);
+
+                tempState = entity.hasItem("SUCTIONSHOES");
+                entity.setState(chips.vars.entityState.FORCEPROOF, tempState);
+
+                // 2: Tile-based states
+                tempState = (thisTileProperties && thisTileProperties.slippery);
+                tempState = (tempState && (thisTileProperties.icy && !entity.getState(chips.vars.entityState.ICEPROOF)));
+                tempState = (tempState && (thisTileProperties.forceful && !entity.getState(chips.vars.entityState.FORCEPROOF)));
+                tempState = (tempState || false);
+                entity.setState(chips.vars.entityState.SLIDING, tempState);
+
+                tempState = (thisTileProperties && (thisTileProperties.icy && !entity.getState(chips.vars.entityState.ICEPROOF)));
+                tempState = (tempState || false);
+                entity.setState(chips.vars.entityState.MOVELOCKED, tempState);
+            } catch (e) {
+                if (chips.g.debug) { debugger; }
+            }
         }
     };
 
     return {
         TileMap : TileMap,
         ReverseTileMap : ReverseTileMap,
-        // Inventory : Inventory, // Only accessed by the Player object
         Timer : Timer,
 
         MonsterList : MonsterList,
-        // Monster : Monster, // Only accessed by the MonsterList
         Player : Player
-        // Action : Action // Only accessed by Monsters/Player
     };
 })();

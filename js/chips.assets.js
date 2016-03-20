@@ -32,7 +32,7 @@ chips.assets = {
         var percent = (numLoaded / total) * 100;
 
         chips.assets.areLoaded = percent >= 100.0; // If 100% of assets are loaded, set the flag to true; false otherwise
-        chips.g.refresh(); // Now that all assets are loaded, refresh the global vars
+
 
         return percent;
     },
@@ -48,8 +48,6 @@ chips.assets = {
 
         }
     },
-
-
 
     canvi : {},
 
@@ -68,10 +66,11 @@ chips.assets = {
         data : function() {
             chips.assets.getLevelset("Test");
             chips.commands.init();
-            chips.commands.setBy.frame(0, "setGameMessage", [chips.vars.defaultGameMessage]);
-            chips.commands.setBy.frame(0, "loadLevel", [1]); // This won't get called until all assets are loaded anyway
-            chips.commands.setBy.frame(0, "redrawAll"); // Is this necessary?
-            chips.commands.setBy.frame(0, "initEvents");
+            chips.commands.schedule.frames.set("setGameMessage", [chips.vars.defaultGameMessage]);
+            var lastLevelPlayed = (chips.util.cookie.get("lastLevelPlayed") || 1);
+            chips.commands.schedule.frames.set("loadLevel", [lastLevelPlayed]); // This won't get called until all assets are loaded anyway
+            chips.commands.schedule.frames.set("redrawAll"); // Is this necessary?
+            chips.commands.schedule.frames.set("initEvents");
         }
     },
 
@@ -118,6 +117,7 @@ chips.assets = {
         $.getJSON(filepath, function(data) {
             chips.data.levels.loadLevelset(data[levelsetName]);
             chips.assets.requisition.data[levelsetName]++;
+            chips.g.refresh(); // Now that all assets are loaded, refresh the global vars
         }).fail(function() {
             console.error("Levelset didn't load. Check JSON file format.");
         });

@@ -20,6 +20,7 @@ chips.vars = {
     rulesetURL : "rulesets/",
 
     turnTime_ms : 100,
+    slideSpeed : 1, // # of turns
     chipsFacingResetDelay : 3, // # of turns before Chip faces south again
 
     boardOffsetX_px : 32,
@@ -112,7 +113,9 @@ chips.vars = {
     entityState : {
         FREE : 0,
         SLIDING : 1,        // Movement is forced forward
-        MOVELOCKED : 2      // Player movement input is ignored
+        MOVELOCKED : 2,     // Player movement input is ignored
+        ICEPROOF : 4,       // Will not slide on ice
+        FORCEPROOF : 8      // Will not slide on force floors
     },
 
     requests : {
