@@ -12,6 +12,7 @@
  */
 
 var chips = {};
+chips.version = "Alpha v0.3.3";
 
 $(document).ready(function() {
 
@@ -32,9 +33,15 @@ $(document).ready(function() {
 
 chips.main = function() {
 
-    // For code that does not need to run every frame
     if (chips.commands.schedule.frames) {
         chips.commands.schedule.frames.execute();
+    }
+
+    if (chips.g.cam.elapsedTime.elapsed_ms - (chips.g.cam.turn * chips.g.turnTime) > chips.g.cam.turn) {
+        chips.g.cam.updateTurn(); // TODO: refactor this into turnwise commands
+        if (chips.commands.schedule.turns) {
+            chips.commands.schedule.turns.execute();
+        }
     }
 
     // tick for keydrown library

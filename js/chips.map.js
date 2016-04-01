@@ -127,17 +127,15 @@ chips.map = {
         };
 
         this.updateTurn = function() {
-            if (this.elapsedTime.elapsed_ms - (this.turn * chips.g.turnTime) > this.turn) {
-                this.turn++;
-                chips.commands.schedule.frames.set("updateDebug");
-                if (this.chipsFacingReset > 0) {
-                    this.chipsFacingReset--;
-                    if (this.chipsFacingReset === 0) {
-                        this.player.set(chips.g.tiles.CHIP_SOUTH);
-                    }
+            this.turn++;
+            chips.commands.schedule.frames.set("updateDebug");
+            if (this.chipsFacingReset > 0) {
+                this.chipsFacingReset--;
+                if (this.chipsFacingReset === 0) {
+                    this.player.set(chips.g.tiles.CHIP_SOUTH);
                 }
-                this.tickAllMonsters();
             }
+            this.tickAllMonsters();
         };
 
         // This also controls the update of turns

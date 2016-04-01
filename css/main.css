@@ -89,3 +89,7 @@ div.linkbar a:visited {
 div.linkbar a:hover {
     color: orangered;
 }
+
+#version {
+    font-size: 10px;
+}

@@ -77,11 +77,9 @@ chips.commands = {
                         console.error("Command '" + list[0][executeOrder].command + "' not recognized.");
                     }
                 }
-                list.shift();
-                return true;
-            } else {
-                return false;
             }
+
+            return list.shift();
         };
     },
 

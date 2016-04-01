@@ -78,7 +78,6 @@ chips.obj = (function() {
         this.tick = function() {
             if (this.paused) { this.pauseTick(); }
             this.elapsed_ms = Date.now() - this.start - this.paused_ms;
-            chips.g.cam.updateTurn(); // TODO: I feel like this *shouldn't* go here...
             if (Math.floor(this.elapsed_ms / 1000) > this.elapsed_sec) {
                 this.elapsed_sec = Math.floor(this.elapsed_ms / 1000);
                 return true;

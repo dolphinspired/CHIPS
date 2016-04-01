@@ -35,6 +35,8 @@
                     $("#buttonShower").css("display", "none");
                     $("#moveControls").css("display", "block");
                 });
+
+                $("#version").html(chips.version);
             });
 
             function toggleAtlases() {
@@ -63,30 +65,33 @@
             </div>
 		</div>
         <div id="gameMessage"></div>
-        <table id="controls">
-            <tr>
-                <td>
-                    <h4>Level Navigation:</h4>
-                    <button onclick="chips.map.load.prevLevel();">Previous</button>
-                    &nbsp;
-                    <button onclick="chips.map.load.level(chips.g.cam.number);">This (restart)</button>
-                    &nbsp;
-                    <button onclick="chips.map.load.nextLevel();">Next</button>
-                    <br/><br/>
-                    <button onclick="chips.g.cam.elapsedTime.togglePause();">Pause</button>
-                </td>
-                <td id="movement">
-                    <span id="buttonShower">Use your arrow keys to move, or click here to show on-screen buttons (warning: not very good).</span>
-                    <div id="moveControls">
-                        &nbsp;<button id="buttonUp" class="totesTouchscreenCompatible">&#9650;</button>
-                        <br/>
-                        <button id="buttonLeft" class="totesTouchscreenCompatible">&#9664;</button>
-                        <button id="buttonDown" class="totesTouchscreenCompatible">&#9660;</button>
-                        <button id="buttonRight" class="totesTouchscreenCompatible">&#9654;</button>
-                    </div>
-                </td>
-            </tr>
-        </table>
+        <div>
+            <span id="version"></span>
+            <table id="controls">
+                <tr>
+                    <td>
+                        <h4>Level Navigation:</h4>
+                        <button onclick="chips.map.load.prevLevel();">Previous</button>
+                        &nbsp;
+                        <button onclick="chips.map.load.level(chips.g.cam.number);">This (restart)</button>
+                        &nbsp;
+                        <button onclick="chips.map.load.nextLevel();">Next</button>
+                        <br/><br/>
+                        <button onclick="chips.g.cam.elapsedTime.togglePause();">Pause</button>
+                    </td>
+                    <td id="movement">
+                        <span id="buttonShower">Use your arrow keys to move, or click here to show on-screen buttons (warning: not very good).</span>
+                        <div id="moveControls">
+                            &nbsp;<button id="buttonUp" class="totesTouchscreenCompatible">&#9650;</button>
+                            <br/>
+                            <button id="buttonLeft" class="totesTouchscreenCompatible">&#9664;</button>
+                            <button id="buttonDown" class="totesTouchscreenCompatible">&#9660;</button>
+                            <button id="buttonRight" class="totesTouchscreenCompatible">&#9654;</button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
         <div id="gameInstructions">
             <h4>Keyboard Controls:</h4>
             <table>
