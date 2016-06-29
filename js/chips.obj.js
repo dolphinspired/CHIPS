@@ -140,13 +140,14 @@ chips.obj = (function() {
 
         getMonstersByName : function(name) {
             var retArray = [], list = this.list;
-            $.each(list, function(i, monster) {
-                if (list.hasOwnProperty(i)) {
-                    if (monster.name === name) {
-                        retArray[retArray.length] = monster;
-                    }
+
+            for (var monster in list) {
+                if (!list.hasOwnProperty(monster)) { continue; }
+                if (list[monster].name === name) {
+                    retArray[retArray.length] = list[monster];
                 }
-            });
+            }
+
             return retArray;
         },
 
