@@ -11,20 +11,25 @@ chips.events = {
     },
 
     init : function() {
-        // On-screen buttons
-        $("#buttonUp").on("mousedown", function() { kd.UP.down(); }).on("mouseup", function() { kd.UP.up(); });
-        $("#buttonLeft").on("mousedown", function() { kd.LEFT.down(); }).on("mouseup", function() { kd.LEFT.up(); });
-        $("#buttonDown").on("mousedown", function() { kd.DOWN.down(); }).on("mouseup", function() { kd.DOWN.up(); });
-        $("#buttonRight").on("mousedown", function() { kd.RIGHT.down(); }).on("mouseup", function() { kd.RIGHT.up(); });
-
         // Prevent default behavior (page scrolling) with arrow keys
-        $(document).on("keydown", function(e) {
-            $.each(chips.vars.keys, function (k, val) {
-                if (e.keyCode === val) {
+        document.addEventListener("keydown", function(e) {
+            for (var k in chips.vars.keys) {
+                if (!chips.vars.keys.hasOwnProperty(k)) { continue; }
+                if (e.keyCode === chips.vars.keys[k]) {
                     e.preventDefault();
                 }
-            });
+            }
         });
+
+        // Get the on-screen buttons and bind their events - very basic, but good enough for now
+        document.getElementById("buttonUp").addEventListener("mousedown", function() { kd.UP.down(); });
+        document.getElementById("buttonUp").addEventListener("mouseup", function() { kd.UP.up(); });
+        document.getElementById("buttonDown").addEventListener("mousedown", function() { kd.DOWN.down(); });
+        document.getElementById("buttonDown").addEventListener("mouseup", function() { kd.DOWN.up(); });
+        document.getElementById("buttonLeft").addEventListener("mousedown", function() { kd.LEFT.down(); });
+        document.getElementById("buttonLeft").addEventListener("mouseup", function() { kd.LEFT.up(); });
+        document.getElementById("buttonRight").addEventListener("mousedown", function() { kd.RIGHT.down(); });
+        document.getElementById("buttonRight").addEventListener("mouseup", function() { kd.RIGHT.up(); });
 
         /*-----------------------------------
          * UP
