@@ -19,6 +19,8 @@ chips.vars = {
     levelsetURL : "levels/",
     rulesetURL : "rulesets/",
 
+    atlasReferenceContainerID : "CHIPS_AtlasReferenceContainer",
+
     turnTime_ms : 100,
     slideSpeed : 1, // # of turns
     chipsFacingResetDelay : 3, // # of turns before Chip faces south again

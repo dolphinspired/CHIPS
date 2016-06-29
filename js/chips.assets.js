@@ -83,26 +83,31 @@ chips.assets = {
 
         chips.assets.requisition.images[id] = 0; // Add this image to the requisition to poll for load status
 
-        var $container;
-
-        if (document.getElementById("refContainer" + id)) {
-            $container = $("#refContainer" + id);
-            if (!document.getElementById("refCanvas" + id)) {
-                $container.append("<canvas id='refCanvas" + id + "'></canvas>");
-            }
-        } else {
-            $(document.body).append("<div id='refContainer" + id + "' style='display:none'></canvas>");
-            $container = $("#refContainer" + id);
-            $container.append("<canvas id='refCanvas" + id + "'></canvas>");
+        // Get the container of reference canvases if it exists, otherwise create the container
+        var canvasContainer = document.getElementById(chips.vars.atlasReferenceContainerID);
+        if (!canvasContainer) {
+            var temp = document.createElement("div");
+            temp.id = chips.vars.atlasReferenceContainerID;
+            temp.style.display = "none";
+            canvasContainer = document.body.appendChild(temp);
         }
 
+        // Create the new canvas only if no other canvas exists by the provided ID
+        if (!document.getElementById("refCanvas" + id)) {
+            var tempCanvas = document.createElement("canvas");
+            tempCanvas.id = "refCanvas" + id;
+            canvasContainer.appendChild(tempCanvas);
+        }
+
+        // Establish the <canvas> and 2d-context objects in the canvi collection
+        // These will be accessible using the prefix parameter, i.e. canvi.gCanvas and canvi.gContext
         chips.assets.canvi[prefix + "Canvas"] = document.getElementById("refCanvas" + id);
         chips.assets.canvi[prefix + "Context"] = chips.assets.canvi[prefix + "Canvas"].getContext("2d");
 
         var imgObj = new Image();
         imgObj.src = url;
 
-        $(imgObj).on("load", function() {
+        imgObj.addEventListener("load", function() {
             chips.assets.canvi[prefix + "Canvas"].width = this.width;
             chips.assets.canvi[prefix + "Canvas"].height = this.height;
             chips.assets.canvi[prefix + "Context"].drawImage(imgObj,0,0);
@@ -111,15 +116,30 @@ chips.assets = {
     },
 
     getLevelset : function(levelsetName) {
+        // Set the flag for this item in requisition.data to 0 until we know it's downloaded.
         chips.assets.requisition.data[levelsetName] = 0;
 
         var filepath = chips.vars.levelsetURL + levelsetName + ".json";
-        $.getJSON(filepath, function(data) {
-            chips.data.levels.loadLevelset(data[levelsetName]);
-            chips.assets.requisition.data[levelsetName]++;
-            chips.g.refresh(); // Now that all assets are loaded, refresh the global vars
-        }).fail(function() {
+        var request = new XMLHttpRequest();
+
+        request.open('GET', filepath, true);
+
+        request.onload = function() {
+            if (this.status >= 200 && this.status < 400) {
+                // Success
+                var data = JSON.parse(this.response);
+                chips.data.levels.loadLevelset(data[levelsetName]);
+                chips.assets.requisition.data[levelsetName]++; // Increment the flag since it's downloaded
+                chips.g.refresh(); // New levelset data is available, so refresh the global vars
+            } else {
+                // Error
+            }
+        };
+
+        request.onerror = function() {
             console.error("Levelset didn't load. Check JSON file format.");
-        });
+        };
+
+        request.send();
     }
 };
