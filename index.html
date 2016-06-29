@@ -30,13 +30,13 @@
             ga('send', 'pageview');
         </script>
         <script>
-            $(document).ready(function() {
-                $("#buttonShower").on("click", function(e) {
-                    $("#buttonShower").css("display", "none");
-                    $("#moveControls").css("display", "block");
+            document.addEventListener("DOMContentLoaded", function() {
+                document.getElementById("buttonShower").addEventListener("click", function(e) {
+                    document.getElementById("buttonShower").style.display = "none";
+                    document.getElementById("moveControls").style.display = "block";
                 });
 
-                $("#version").html(chips.version);
+                document.getElementById("version").textContent = chips.version;
             });
 
             function toggleAtlases() {
