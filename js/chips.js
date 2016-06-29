@@ -14,11 +14,10 @@
 var chips = {};
 chips.version = "Alpha v0.3.3";
 
-$(document).ready(function() {
+document.addEventListener("DOMContentLoaded", function() {
 
     chips.assets.preload.images();
     chips.assets.preload.data();
-
 
     chips.g.loop = window.setInterval(function() {
         chips.g.frame++;

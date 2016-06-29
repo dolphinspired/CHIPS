@@ -36,9 +36,10 @@ chips.g = {
         this.rules = chips.rules[chips.vars.defaultRuleset].data;
 
         if (chips.vars.pauseOnLoseFocus) {
-            $(window).on("blur", function(e) {
+            window.addEventListener("blur", function(e) {
                 chips.g.cam.elapsedTime.forcePause();
-            }).on("focus", function(e) {
+            });
+            window.addEventListener("focus", function(e) {
                 chips.g.cam.elapsedTime.forceUnpause();
             });
         }
