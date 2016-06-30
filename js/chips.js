@@ -2,17 +2,11 @@
  * A Chip's Challenge remake by Jacob Brogan
  * Original game by Chuck Somerville
  *
- * File schema:
- *  chips.draw.js           For drawing everything onto the game's canvas.
- *  chips.load.js           For loading data onto the page (in the background).
- *  chips.events.js         For handling page events, such as user input.
- *
- *  chips.settings.js       For all read-only global variables.
- *  chips.global.js         For all object structures and mutable global variables.
+ * This file must be referenced FIRST, before any other chips modules are loaded.
  */
 
 var chips = {};
-chips.version = "Alpha v0.3.3";
+chips.version = "Alpha v0.3.3"; // This is the version that will be shown on the page
 
 document.addEventListener("DOMContentLoaded", function() {
 
@@ -32,12 +26,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
 chips.main = function() {
 
+    // If any commands exist in the framewise schedule, execute them now.
     if (chips.commands.schedule.frames) {
         chips.commands.schedule.frames.execute();
     }
 
+    // If enough time has passed that we're on a new turn...
     if (chips.g.cam.elapsedTime.elapsed_ms - (chips.g.cam.turn * chips.g.turnTime) > chips.g.cam.turn) {
         chips.g.cam.updateTurn(); // TODO: refactor this into turnwise commands
+        // If any commands existin the turnwise schedule, execute them now.
         if (chips.commands.schedule.turns) {
             chips.commands.schedule.turns.execute();
         }
@@ -46,6 +43,7 @@ chips.main = function() {
     // tick for keydrown library
     kd.tick();
 
+    // TODO: refactor this into a framewise command
     if (chips.g.cam && chips.g.cam.elapsedTime && chips.g.cam.elapsedTime.tick()) {
         chips.g.cam.decrementTime();
     }

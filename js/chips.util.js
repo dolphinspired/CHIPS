@@ -4,6 +4,7 @@
 
 chips.util = {
 
+    // The dir object contains several functions for calculating directions (for board movement)
     dir : {
         NORTH : 0,
         WEST : 1,
@@ -94,6 +95,7 @@ chips.util = {
         // In the case of a tie (perfect diagonal), move vertically (unless otherwise specified!)
         // returns one or two directions in an array, where the first element is the greatest priority direction
         // to take if you want to reach your destination
+        // TODO: Possible mathematical shortcut here? Could be interesting...
 
         approach : function(xSrc, ySrc, xDest, yDest, tiebreaker) {
             if (xSrc === xDest && ySrc === yDest) {
@@ -118,7 +120,7 @@ chips.util = {
                         return [this.WEST];
                     }
                 }
-            } else { // Y diff is greater magnitude
+            } else { // Y diff is greater magnitude, or magnitudes are equal
                 if (yDest > ySrc) {
                     if (xDest > xSrc) {
                         return [this.SOUTH, this.EAST];
@@ -148,7 +150,7 @@ chips.util = {
      * @param numTile - tile data
      * @param numLayer - zero-based
      */
-    "getLayer" : function(numTile, numLayer) {
+    getLayer : function(numTile, numLayer) {
         var a = chips.util.getLayerCoord(numTile, 2*numLayer+1) * chips.draw.LAYER_SIZE_BITS;
         var b = chips.util.getLayerCoord(numTile, 2*numLayer);
         return a + b;
@@ -162,11 +164,18 @@ chips.util = {
      * @param radixPlace - zero-based number of the coordinate digit to get, starting from the right
      * @returns int - the number of the coordinate/digit, will be from 0 to LAYER_SIZE_BITS-1
      */
-    "getLayerCoord" : function(num, radixPlace) {
+    getLayerCoord : function(num, radixPlace) {
         return Math.floor(num / (Math.pow(chips.draw.LAYER_SIZE_BITS,radixPlace)) % chips.draw.LAYER_SIZE_BITS);
     },
 
-    "getLayerBase" : function(layer) {
+    /**
+     * function getLayerBase
+     *
+     *
+     * @param layer
+     * @returns {number}
+     */
+    getLayerBase : function(layer) {
         return Math.pow(chips.draw.LAYER_SIZE_BITS,2*layer);
     },
 
@@ -177,7 +186,7 @@ chips.util = {
      * @param num - number whose digits will be returned in an array
      * @returns array[] - all digits of the provided number, up to NUM_LAYERS * 2 (x,y for each layer)
      */
-    "getAllLayerCoords" : function(num) {
+    getAllLayerCoords : function(num) {
         var retArray = [];
 
         for (var i = 0; i < chips.draw.NUM_LAYERS * 2; i++) {
@@ -265,6 +274,7 @@ chips.util = {
         return floorCollision || itemCollision || monsterCollision;
     },
 
+    // Quick array helpers
     arrayDeepCopy : function(array) {
         var ret = [];
 
@@ -299,7 +309,15 @@ chips.util = {
         return false;
     },
 
+    // Quick API to get and set cookies on a page
     cookie : {
+        /**
+         * function cookie.get
+         * Gets the value associated with the name provided for this site's cookie.
+         *
+         * @param name - The name of the name=value pair to lookup on this site's cookie
+         * @returns {string} - The value associated with the name provided
+         */
         get : function(name) {
             var cookieObject = this.parse();
             for (var cookie in cookieObject) {
@@ -308,14 +326,24 @@ chips.util = {
                     return cookieObject[cookie];
                 }
             }
-            // If no cookie exists, return undefined
+            return undefined; // If no cookie exists
         },
+
+        /**
+         * function cookie.set
+         * Sets a name/value pair for this site's cookie
+         *
+         * @param name - the name of a name=value pair to set on this site's cookie
+         * @param value - the value of the name/value pair to set on this site's cookie
+         * @param argumentObject - Optional. An object to specify any of the standard cookie arguments
+         *     (expires, path, domain, secure). Expires must be set as a number of DAYS.
+         * @returns {string} - the name=value pair along with arguments that have been set on the site's cookie
+         */
         set : function(name, value, argumentObject) {
             var toSet = name + "=" + value;
             var args = (argumentObject || {});
             for (var arg in args) {
                 if (!args.hasOwnProperty(arg)) { continue; }
-
                 // Shortcut to setting a number of days to live for a cookie
                 if (arg === "expires" && typeof args[arg] == "number") {
                     var now = new Date();
@@ -330,17 +358,33 @@ chips.util = {
             document.cookie = toSet;
             return toSet;
         },
-        // Note that "clear" means it will persist (with value = "") only until the page is closed/refreshed
+
+        /**
+         * function cookie.clear
+         * Empties out the cookie at the name provided and sets it to expire this session.
+         * Note that "clear" means it will persist (with value = "") only until the page is closed/refreshed
+         *
+         * @param name - the name of the name=value pair to clear in this site's cookie
+         * @returns {boolean} - true to indicate that the cookie has been cleared
+         */
         clear : function (name) {
             this.set(name, "", { expires : -30 });
             return true;
         },
+
+        /**
+         * function cookie.parse
+         * Splits a cookie string apart into an object consisting of { key : value, key : value, ... }
+         *
+         * @param cookieString - Optional. A cookie string to parse. Defaults to document.cookie.
+         * @returns {object} - The cookie string represented as an object
+         */
         parse : function(cookieString) {
             var toSplit = (cookieString || document.cookie);
             var whole = toSplit.split("; ");
             var cookies = {}, pieces;
             for (var i = 0; i < whole.length; i++) {
-                pieces = whole[i].split("=");
+                pieces = whole[i].split("="); // temp storage of [name, value]
                 cookies[pieces[0]] = pieces[1];
             }
             return cookies;
