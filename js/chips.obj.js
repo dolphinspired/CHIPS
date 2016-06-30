@@ -4,6 +4,7 @@
 
 chips.obj = (function() {
 
+    // TileMap: an object in the style of { "TILENAME" : VALUE , ... }
     var TileMap = function(tData) {
         for (var i in tData) {
             if (!tData.hasOwnProperty(i)) { continue; }
@@ -18,6 +19,7 @@ chips.obj = (function() {
         }
     };
 
+    // ReverseTileMap: an object in the style of { VALUE : "TILENAME" , ... }
     var ReverseTileMap = function(tData) {
         for (var i in tData) {
             if (!tData.hasOwnProperty(i)) { continue; }
@@ -32,6 +34,8 @@ chips.obj = (function() {
         }
     };
 
+    // Scans the active ruleset for all type : "item" that have an inventory slot defined
+    // then initializes a collection of all items in their appropriate slots with qty. 0
     var Inventory = function(ruleset) {
         this.items = {};
 
@@ -398,20 +402,21 @@ chips.obj = (function() {
     };
 
     var Action = {
-        getLayer : function(entity) {
+        _getLayer : function(entity) {
             return entity.class === "player" ? chips.draw.LAYER.CHIP : chips.draw.LAYER.MONSTER;
         },
 
+        // TODO: I don't like having the tile information set in two places, but can that be avoided?
         set : function(entity, tile) {
             var tileToSet = (tile || entity.tile);
-            var layerToSet = this.getLayer(entity);
+            var layerToSet = this._getLayer(entity);
             chips.g.cam.setTileLayer(entity.x, entity.y, layerToSet, tileToSet);
             entity.tile = chips.g.cam.getTileLayer(entity.x, entity.y, layerToSet);
             return entity;
         },
 
         unset : function(entity) {
-            var layerToSet = this.getLayer(entity);
+            var layerToSet = this._getLayer(entity);
             chips.g.cam.clearTileLayer(entity.x, entity.y, layerToSet);
             return entity;
         },

@@ -112,6 +112,7 @@ chips.vars = {
         GAME_SUCCESS : 900
     },
 
+    // TODO: This is used by both obj and events, but it doesn't really belong in vars
     entityState : {
         FREE : 0,
         SLIDING : 1,        // Movement is forced forward
