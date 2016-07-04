@@ -68,7 +68,18 @@ chips.commands = {
             }
         };
 
+        // Set this property to tell the main loop when you want this CommandQueue to execute automatically
+        // Return TRUE under conditions where this CommandQueue should run, FALSE if you want it not to run
+        // By default, this condition always returns true
+        this.isReadyToExecute = function() { return true; };
+
+        // Set these properties to behaviors that you want to occur before/after this CommandQueue is executed
+        // Note that these properties will be executed even if the queue is empty
+        this.onBeforeExecute = function() {};
+        this.onAfterExecute = function() {};
+
         this.execute = function() {
+            this.onBeforeExecute();
             if (typeof list[0] != "undefined") {
                 for (var executeOrder = 0; executeOrder < list[0].length; executeOrder++) {
                     if (typeof chips.commands.lib[list[0][executeOrder].command] != "undefined") {
@@ -78,6 +89,7 @@ chips.commands = {
                     }
                 }
             }
+            this.onAfterExecute();
 
             return list.shift();
         };
@@ -101,9 +113,35 @@ chips.commands = {
     },
 
     init : function() {
+        /*****************************************************
+         * Define the command schedules and their properties *
+         *****************************************************/
         this.schedule["frames"] = new this.CommandQueue();
-        this.schedule["turns"] = new this.CommandQueue();
+        this.schedule["frames"].onBeforeExecute = function() {
+            chips.g.frame++;
+        };
+        this.schedule["frames"].onAfterExecute = function() {
+            // After all frame commands are executed, check to see if the level's time needs to be decremented
+            var cam = chips.g.cam;
+            if (cam && cam.elapsedTime && cam.elapsedTime.tick()) {
+                cam.decrementTime();
+            }
+        };
 
+        this.schedule["turns"] = new this.CommandQueue();
+        this.schedule["turns"].onBeforeExecute = function() {
+            chips.g.cam.updateTurn();
+        };
+        this.schedule["turns"].isReadyToExecute = function() {
+            var cam = chips.g.cam;
+            if (cam && cam.elapsedTime) {
+                return cam.elapsedTime.elapsed_ms - (cam.turn * chips.g.turnTime) > cam.turn;
+            }
+        };
+
+        /*****************************************************
+         * Populate the command library (chips.commands.lib) *
+         *****************************************************/
         this.lib["loadLevel"] = new this.Command(function(args) {
             chips.map.load.level(args[0]);
             this.reset();

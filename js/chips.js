@@ -6,7 +6,7 @@
  */
 
 var chips = {};
-chips.version = "Alpha v0.3.3"; // This is the version that will be shown on the page
+chips.version = "Alpha v0.3.4"; // This is the version that will be shown on the page
 
 document.addEventListener("DOMContentLoaded", function() {
 
@@ -14,37 +14,30 @@ document.addEventListener("DOMContentLoaded", function() {
     chips.assets.preload.data();
 
     chips.g.loop = window.setInterval(function() {
-        chips.g.frame++;
         if (chips.assets.areLoaded) {
             chips.main();
         } else {
             chips.draw.loadScreen(chips.assets.poll());
         }
-
     }, 1000/chips.vars.fps);
 });
 
 chips.main = function() {
+    // require these components to be defined before proceeding
+    var schedule = chips.commands.schedule;
+    var cam = chips.g.cam;
 
-    // If any commands exist in the framewise schedule, execute them now.
-    if (chips.commands.schedule.frames) {
-        chips.commands.schedule.frames.execute();
-    }
-
-    // If enough time has passed that we're on a new turn...
-    if (chips.g.cam.elapsedTime.elapsed_ms - (chips.g.cam.turn * chips.g.turnTime) > chips.g.cam.turn) {
-        chips.g.cam.updateTurn(); // TODO: refactor this into turnwise commands
-        // If any commands existin the turnwise schedule, execute them now.
-        if (chips.commands.schedule.turns) {
-            chips.commands.schedule.turns.execute();
+    if (schedule && cam) {
+        // Execute all pending commands - see chips.commands.js for more information
+        for (var cmdSet in schedule) {
+            if (!schedule.hasOwnProperty(cmdSet)) { continue; }
+            if (schedule[cmdSet].isReadyToExecute && schedule[cmdSet].isReadyToExecute()) {
+                schedule[cmdSet].execute();
+            }
         }
     }
 
-    // tick for keydrown library
+    // tick for keydrown library - allows for smooth keyboard input
+    // NOTE: this did not work when moved to onAfterExecute for the frames schedule. Research this further...
     kd.tick();
-
-    // TODO: refactor this into a framewise command
-    if (chips.g.cam && chips.g.cam.elapsedTime && chips.g.cam.elapsedTime.tick()) {
-        chips.g.cam.decrementTime();
-    }
 };
