@@ -31,9 +31,7 @@ chips.map = {
 
     ActiveMap : function(num) {
 
-        /**************************/
-        /* VALIDATION AND LOADING */
-        /**************************/
+        //region VALIDATION AND LOADING
 
         if (typeof num == "undefined") {
             console.error("No levelNum assigned to ActiveMap");
@@ -43,10 +41,11 @@ chips.map = {
 
         var level = chips.g.cls[num];
 
-        /**************/
-        /* LEVEL DATA */
-        /**************/
+        //endregion
 
+        //region LEVEL DATA
+
+        // Retrieved from the levelset file
         this.number = parseInt(num);
         this.name = level.name;
         this.password = level.password;
@@ -56,9 +55,15 @@ chips.map = {
         this.width = level.width;
         this.height = Math.floor(level.board.length / level.width);
 
-        /********************/
-        /* STAGE AND ACTORS */
-        /********************/
+        // Supporting data, not based on levelset file
+        this.elapsedTime = new chips.obj.Timer();
+        this.turn = 0;
+        this.chipsFacingReset = 0;
+        this.slideList = []; // List of everything that needs to auto-move, as on ice, force floors, etc.
+
+        //endregion
+
+        //region STAGE AND ACTORS
 
         this.board = [];
         this.player = {};
@@ -81,6 +86,7 @@ chips.map = {
             this.player = new chips.obj.Player(chips.g.tiles.CHIP_SOUTH, 0, 0);
         }
 
+        // Object for storing the coordinates of the region of the board visible to the user
         this.view = {
             top : 0,
             left : 0,
@@ -90,18 +96,9 @@ chips.map = {
 
         this.monsters = {};
 
-        /*************************/
-        /* SUPPORTING LEVEL DATA */
-        /*************************/
+        //endregion
 
-        this.elapsedTime = new chips.obj.Timer();
-        this.turn = 0;
-        this.chipsFacingReset = 0;
-        this.slideList = []; // List of everything that needs to auto-move, as on ice, force floors, etc.
-
-        /**********************************************/
-        /* BOARD DATA MANIPULATION (turns, hud, etc.) */
-        /**********************************************/
+        //region LEVEL DATA MANIPULATION (turns, hud, etc.)
 
         this.tickAllMonsters = function() {
             var thisMonster, monsters;
@@ -172,41 +169,9 @@ chips.map = {
             this.setChipsLeft(this.chipsLeft - 1);
         };
 
-        /**************************/
-        /* TILE MANUIPULATION API */
-        /**************************/
+        //endregion
 
-        // Returns an array containing the x,y coordinate pairs of every instance
-        // of the arg tile on the board
-        // If not found, return false
-        this.findTiles = function(tile) {
-            var retCoords = [];
-            for (var y = 0; y < this.board.length; y++) {
-                for (var x = 0; x < this.board[y].length; x++) {
-                    if (this.getTile(x, y) === tile) {
-                        retCoords[retCoords.length] = [x,y];
-                    }
-                }
-            }
-            return (retCoords.length > 0 ? retCoords : false);
-        };
-
-        // Not specifying a tile will get all tiles that exist on the given layer
-        this.findTilesByLayer = function(layer, tile) {
-            if (typeof layer == "undefined") {
-                console.error("Layer must be defined for findTilesByLayer. Tile is optional.");
-                if (chips.g.debug) { debugger; }
-            }
-            var retCoords = [], allTiles = (typeof tile == "undefined");
-            for (var y = 0; y < this.board.length; y++) {
-                for (var x = 0; x < this.board[y].length; x++) {
-                    if ((allTiles && this.getTileLayer(x, y, layer) > 0) || (!allTiles && this.getTileLayer(x, y, layer) === tile)) {
-                        retCoords[retCoords.length] = [x,y];
-                    }
-                }
-            }
-            return (retCoords.length > 0 ? retCoords : false);
-        };
+        //region BOARD API - Core tile functions
 
         this.getTile = function (x, y) {
             try {
@@ -244,6 +209,10 @@ chips.map = {
         this.clearTileLayer = function(x, y, layer) {
             return this.setTileLayer(x, y, layer, 0);
         };
+
+        //endregion
+
+        //region BOARD API - Generic tile getters and setters
 
         this.getRelativeTile = function(x, y, d, distance) {
             distance = distance || 0; // if distance is zero or unspecified, return the current tile
@@ -288,6 +257,10 @@ chips.map = {
         this.clearNextTileLayer = function(currentTileX, currentTileY, direction, layer) {
             return this.setNextTileLayer(currentTileX, currentTileY, direction, layer, 0);
         };
+
+        //endregion
+
+        //region BOARD API - Player-relative tile getters and setters
 
         this.getChipsTile = function() {
             return this.getTile(this.player.x, this.player.y);
@@ -349,14 +322,9 @@ chips.map = {
             return this.clearNextTileLayer(this.player.x, this.player.y, direction, layer);
         };
 
-        this.getChipsFacing = function() {
-            // TODO: avoid magic numbers
-            return chips.util.getLayerCoord(chips.g.cam.getChipsTileLayer(chips.draw.LAYER.CHIP), 6) % 4;
-        };
+        //endregion
 
-        /***************************/
-        /* OTHER UTILITY FUNCTIONS */
-        /***************************/
+        //region OTHER UTILITY FUNCTIONS
 
         this.reset = function() {
             chips.commands.schedule.frames.set("loadLevel", [this.number]);
@@ -396,5 +364,39 @@ chips.map = {
                 this.bottom = chips.g.cam.height - 1;
             }
         };
+
+        // Returns an array containing the x,y coordinate pairs of every instance
+        // of the arg tile on the board
+        // If not found, return false
+        this.findTiles = function(tile) {
+            var retCoords = [];
+            for (var y = 0; y < this.board.length; y++) {
+                for (var x = 0; x < this.board[y].length; x++) {
+                    if (this.getTile(x, y) === tile) {
+                        retCoords[retCoords.length] = [x,y];
+                    }
+                }
+            }
+            return (retCoords.length > 0 ? retCoords : false);
+        };
+
+        // Not specifying a tile will get all tiles that exist on the given layer
+        this.findTilesByLayer = function(layer, tile) {
+            if (typeof layer == "undefined") {
+                console.error("Layer must be defined for findTilesByLayer. Tile is optional.");
+                if (chips.g.debug) { debugger; }
+            }
+            var retCoords = [], allTiles = (typeof tile == "undefined");
+            for (var y = 0; y < this.board.length; y++) {
+                for (var x = 0; x < this.board[y].length; x++) {
+                    if ((allTiles && this.getTileLayer(x, y, layer) > 0) || (!allTiles && this.getTileLayer(x, y, layer) === tile)) {
+                        retCoords[retCoords.length] = [x,y];
+                    }
+                }
+            }
+            return (retCoords.length > 0 ? retCoords : false);
+        };
+
+        //endregion
     }
 };
