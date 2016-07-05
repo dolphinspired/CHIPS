@@ -104,12 +104,6 @@ chips.commands = {
 
     Command : function(func, args) {
         this.action = func;
-
-        this.reset = function() {
-            this.state = 0;
-        };
-
-        this.reset();
     },
 
     init : function() {
@@ -143,79 +137,71 @@ chips.commands = {
          *****************************************************/
         this.lib["loadLevel"] = new this.Command(function(args) {
             chips.map.load.level(args[0]);
-            this.reset();
         });
         this.lib["startChipsFacingResetDelay"] = new this.Command(function(args) {
             chips.g.cam.chipsFacingReset = chips.vars.chipsFacingResetDelay;
-            this.reset();
         });
         this.lib["updateGameframe"] = new this.Command(function(args) {
             chips.draw.gameFrame();
-            this.reset();
         });
         this.lib["updateMap"] = new this.Command(function(args) {
             chips.draw.activeMap();
             if (chips.g.debug) { chips.draw.debug(); }
-            this.reset();
         });
         this.lib["updateDebug"] = new this.Command(function(args) {
             chips.draw.debug();
-            this.reset();
         });
         this.lib["updateHud"] = new this.Command(function(args) {
             chips.draw.hud();
-            this.reset();
         });
         this.lib["updateLevelNum"] = new this.Command(function(args) {
             chips.draw.levelNumber();
-            this.reset();
         });
         this.lib["updateTime"] = new this.Command(function(args) {
             chips.draw.time();
-            this.reset();
         });
         this.lib["updateChipsLeft"] = new this.Command(function(args) {
             chips.draw.chipsLeft();
-            this.reset();
         });
         this.lib["updateInventory"] = new this.Command(function(args) {
             chips.draw.inventory();
-            this.reset();
         });
         this.lib["toggleHint"] = new this.Command(function(args) {
-            this.state = args[0];
-            if (this.state > 0) {
+            // use argument if supplied, otherwise toggle it
+            if (args && args.length) {
+                chips.g.cam.hintShown = args[0];
+            } else {
+                chips.g.cam.hintShown = (chips.g.cam.hintShown > 0 ? 0 : 1);
+            }
+
+            // Redraw based on the state of hintShown
+            // TODO: Incorporate this condition into HUD redraw?
+            if (chips.g.cam.hintShown > 0) {
                 chips.draw.hint();
             } else {
                 chips.draw.gameFrame(args);
                 chips.draw.hud();
             }
-            args = [];
         });
         this.lib["redrawAll"] = new this.Command(function(args) {
             chips.draw.gameFrame();
             chips.draw.activeMap();
             chips.draw.debug();
             chips.draw.hud();
-            this.reset();
         });
         this.lib["setGameMessage"] = new this.Command(function(args) {
             document.getElementById("gameMessage").innerHTML = args[0];
-            this.reset();
         });
         this.lib["initEvents"] = new this.Command(function(args) {
             chips.events.init();
-            this.reset();
         });
         this.lib["syncMonsterList"] = new this.Command(function(args) {
             chips.g.cam.monsters = {};
             chips.g.cam.monsters = new chips.obj.MonsterList();
             chips.g.cam.monsters.sync();
-            this.reset();
         });
         this.lib["drawPauseScreen"] = new this.Command(function(args) {
             chips.draw.pauseScreen();
-            this.reset();
         });
         this.lib["startMovingChip"] = new this.Command(function(args) {
             // Do not start moving if the game is paused or if chip is "movelocked" (i.e., sliding on ice)
@@ -246,7 +232,6 @@ chips.commands = {
             } catch (e) {
                 if (chips.g.debug) { debugger; }
             }
-            this.reset();
         });
     }
 };

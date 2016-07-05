@@ -59,6 +59,7 @@ chips.map = {
         this.elapsedTime = new chips.obj.Timer();
         this.turn = 0;
         this.chipsFacingReset = 0;
+        this.hintShown = 0;
         this.slideList = []; // List of everything that needs to auto-move, as on ice, force floors, etc.
 
         //endregion
