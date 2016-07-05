@@ -32,6 +32,7 @@ The beta phase will begin once the game is feature-complete (compared to MS-CC1)
 
 The alpha phase of development will focus on getting all MS-CC1 features into the game and making sure the game controls accurately and, in general, adheres to the [Microsoft Ruleset](http://chipschallenge.wikia.com/wiki/Ruleset#Microsoft_ruleset).
 
+* 0.3.5 - Moved decrementTime to the onBeforeExecute event to resolve a bug with time not updating.
 * 0.3.4 - Force floors are hard, refactoring in the meantime. Added events to the CommandQueue object and cleaned up the main loop.
 * 0.3.3 - ICE TILES ARE WORKING! The timing is a little off, but the logic is there. Next release: force floors.
 * 0.3.2 - Coding changes. Ice still doesn't work, but the "command" system has been rewritten to hopefully accomodate this effort. I wanted to push a new version since I finally got the game in a working state again.

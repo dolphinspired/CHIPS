@@ -6,7 +6,7 @@
  */
 
 var chips = {};
-chips.version = "Alpha v0.3.4"; // This is the version that will be shown on the page
+chips.version = "Alpha v0.3.5"; // This is the version that will be shown on the page
 
 document.addEventListener("DOMContentLoaded", function() {
 

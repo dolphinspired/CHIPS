@@ -119,9 +119,8 @@ chips.commands = {
         this.schedule["frames"] = new this.CommandQueue();
         this.schedule["frames"].onBeforeExecute = function() {
             chips.g.frame++;
-        };
-        this.schedule["frames"].onAfterExecute = function() {
-            // After all frame commands are executed, check to see if the level's time needs to be decremented
+
+            // Before all frame commands are executed, check to see if the level's time needs to be decremented
             var cam = chips.g.cam;
             if (cam && cam.elapsedTime && cam.elapsedTime.tick()) {
                 cam.decrementTime();
