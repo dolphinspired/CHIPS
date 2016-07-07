@@ -23,8 +23,8 @@ chips.draw = {
     },
 
     /**
-     * function drawGameFrame
-     * Copies the window canvas image onto the main game canvas
+     * function draw.gameFrame
+     * Copies the window canvas image (the green computery background in CHIPS) onto the main game canvas
      */
 
     gameFrame : function() {
@@ -33,7 +33,7 @@ chips.draw = {
     },
 
     /**
-     * function drawTile
+     * function draw.tile
      * Draws a single tile onto the board at the specified location
      *
      * @param tile
@@ -240,6 +240,7 @@ chips.draw = {
 
         ctx.font = "bold 16px Arial";
         ctx.textAlign = "center";
+        ctx.fillStyle = "red";
         ctx.fillText("Loading - " + Math.floor(percentLoaded) + "%", chips.vars.gameWindowWidth/2, chips.vars.gameWindowHeight/2);
     },
 
