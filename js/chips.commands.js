@@ -7,7 +7,7 @@ chips.commands = {
      * PART I : COMMAND SCHEDULING *
      *******************************/
     CommandQueue : function() {
-        var list = [];
+        var _list = [];
 
         var CommandCall = function(command, args) {
             this.timestamp = Date.now();
@@ -19,47 +19,72 @@ chips.commands = {
         // If no index is specified, returns the whole command list
         this.get = function(scheduleOrder) {
             if (typeof scheduleOrder == "undefined") {
-                return list;
+                return _list;
             } else {
-                return list[scheduleOrder];
+                return _list[scheduleOrder];
             }
         };
 
         // Check to see if a command already exists in a given scheduleOrder (i.e. during a specific frame)
-        // If so, return its executeOrder (a reference to a CommandCall object)
+        // If so, return its executeOrder (index of a CommandCall object)
         // If not, return undefined
         this.query = function(command, scheduleOrder) {
             scheduleOrder = (scheduleOrder || 0);
 
-            for (var executeOrder = 0; executeOrder < list[scheduleOrder].length; executeOrder++) {
-                if (list[scheduleOrder][executeOrder].command === command) {
+            for (var executeOrder = 0; executeOrder < _list[scheduleOrder].length; executeOrder++) {
+                if (_list[scheduleOrder][executeOrder].command === command) {
                     // If the command exists, replace its args with the most recent one
                     return executeOrder;
                 }
             }
         };
 
+        /**
+         * function CommandQueue.set
+         * Adds a command to this CommandQueue.
+         *
+         * @param command - Required. Name of the command to be added to the queue.
+         * @param args - Default empty array. Array of arguments to be supplied to command's function.
+         * @param scheduleOrder - Default 0. Number of executions after which the command will be performed.
+         *                        A value of 0 means it occurs in the next execution.
+         * @returns {boolean} - true if command was successfully added, false otherwise
+         */
         this.set = function(command, args, scheduleOrder) {
+            if (!command) {
+                console.error("No command supplied to CommandQueue.set()");
+                if (chips.g.debug) { debugger; }
+                return false;
+            }
             args = (args || []);
-            scheduleOrder = (scheduleOrder || 0);
-            //console.log("Cmd set START: " + command + "; " + args + "; " + scheduleOrder);
+            scheduleOrder = (scheduleOrder && scheduleOrder >= 0 ? scheduleOrder : 0);
+            var enableLogging = (
+                chips.g.debug &&
+                chips.g.logCommands &&
+                !chips.util.arrayContains(chips.g.excludeCommandsFromLogging, command)
+            );
+
+            if (enableLogging) {
+                console.log("Cmd set START: " + command + "; [" + args + "]; " + scheduleOrder);
+            }
 
             var objCommandCall = new CommandCall(command, args);
 
             try {
-                if (typeof list[scheduleOrder] == "undefined") { // Initialize if it's the first command of the frame
-                    list[scheduleOrder] = [];
-                    list[scheduleOrder][0] = objCommandCall;
+                if (typeof _list[scheduleOrder] == "undefined") { // Initialize if it's the first command of the frame
+                    _list[scheduleOrder] = [];
+                    _list[scheduleOrder][0] = objCommandCall;
                 } else {
                     var executeOrder = this.query(command, scheduleOrder);
 
                     if (typeof executeOrder == "undefined") { // Command does not exist for this scheduleOrder
-                        list[scheduleOrder][list[scheduleOrder].length] = objCommandCall;
+                        _list[scheduleOrder][_list[scheduleOrder].length] = objCommandCall;
                     } else { // Command already exists for this scheduleOrder, replace old args with new args
-                        list[scheduleOrder][executeOrder].args = objCommandCall.args;
+                        _list[scheduleOrder][executeOrder].args = objCommandCall.args;
                     }
                 }
-                //console.log("Cmd set   END: " + command + "; " + args + "; " + scheduleOrder);
+                if (enableLogging) {
+                    console.log("Cmd set   END: " + command + "; [" + args + "]; " + scheduleOrder);
+                }
                 return true;
             } catch (e) {
                 console.error("Error setting command into schedule.\nwait : " + scheduleOrder + " / command : " + command + " / args : " + args);
@@ -78,20 +103,27 @@ chips.commands = {
         this.onBeforeExecute = function() {};
         this.onAfterExecute = function() {};
 
+        /**
+         * function CommandQueue.execute
+         * Runs the functions associated with all commands at index 0 in this CommandQueue's list.
+         * Then, shifts the list so that the next set of commands will be run on the next execute call.
+         *
+         * @returns {Array} the array of the command schedule after removing (shifting) the currently executed set
+         */
         this.execute = function() {
             this.onBeforeExecute();
-            if (typeof list[0] != "undefined") {
-                for (var executeOrder = 0; executeOrder < list[0].length; executeOrder++) {
-                    if (typeof chips.commands.lib[list[0][executeOrder].command] != "undefined") {
-                        chips.commands.lib[list[0][executeOrder].command](list[0][executeOrder].args);
+            if (typeof _list[0] != "undefined") {
+                for (var executeOrder = 0; executeOrder < _list[0].length; executeOrder++) {
+                    if (typeof chips.commands.lib[_list[0][executeOrder].command] != "undefined") {
+                        chips.commands.lib[_list[0][executeOrder].command](_list[0][executeOrder].args);
                     } else {
-                        console.error("Command '" + list[0][executeOrder].command + "' not recognized.");
+                        console.error("Command '" + _list[0][executeOrder].command + "' not recognized.");
                     }
                 }
             }
             this.onAfterExecute();
 
-            return list.shift();
+            return _list.shift();
         };
     },
 
@@ -137,6 +169,8 @@ chips.commands = {
         this.lib["startChipsFacingResetDelay"] = function(args) {
             chips.g.cam.chipsFacingReset = chips.vars.chipsFacingResetDelay;
         };
+        // TODO: Combine all these "update" commands into a single "redraw" command with a parameter
+        // TODO: Possible idea: an object with flags telling what to redraw, rather than adding commands each time
         this.lib["updateGameframe"] = function(args) {
             chips.draw.gameFrame();
         };

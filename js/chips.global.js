@@ -7,15 +7,26 @@ chips.g = {
     state : 0,
     turnTime : 100, // in ms
 
+    // Movement pattern variables
     keylock : 0,
     moveStreakStart : -1,
     lastMoveTurn : -1,
     oddStep : 0,
 
+    // Debugging variables - should be removed before release
     debug : 1,
-    logRequests : 1,
-    excludeRequestsFromLogging : ["updateDebug", "startMovingChip", "stopMovingChip", "updateMap", "updateTime"],
+    logCommands : 0,
+    excludeCommandsFromLogging : [
+        "updateDebug",
+        "startMovingChip",
+        "stopMovingChip",
+        "updateMap",
+        "updateTime",
+        "redrawAll"
+    ],
 
+    // Objects that need to be globally accessible
+    // TODO: Surely there is a better way to structure this app than using assorted global objects...?
     loop : {},
     cam : {}, // Current Active Map
     cls : {}, // Current Level Set
@@ -42,12 +53,6 @@ chips.g = {
             window.addEventListener("focus", function(e) {
                 chips.g.cam.elapsedTime.forceUnpause();
             });
-        }
-    },
-
-    test : {
-        init : function() {
-
         }
     }
 };
