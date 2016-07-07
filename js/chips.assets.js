@@ -4,9 +4,50 @@
 
 chips.assets = {
 
+    // This flag will be set to true once poll() returns >= 100%
     areLoaded : false,
 
-    // Returns the percentage of items that have been loaded which have been requested from the server
+    // Used for keeping track of which files have been requested and which have been loaded
+    requisition : {
+        images : {},
+        data : {},
+        scripts : {}
+    },
+
+    // Stores references to all canvasses (canvi...?) in the window that are used for CHIPS
+    canvi : {},
+
+    // These functions are intended to get the appropriate assets from the server and load them into their
+    // expected memory locations within the context of the application
+    preload : {
+        images : function() {
+            // Create and load all canvases into the chips.assets.canvi object and initialize their settings
+            chips.assets.canvi.gCanvas = document.getElementById("gameCanvas"); // TODO: change to container?
+            chips.assets.canvi.gContext = chips.assets.canvi.gCanvas.getContext("2d");
+            chips.assets.loadAtlas("Tiles", "t", chips.vars.atlasURL);
+            chips.assets.loadAtlas("Window", "w", chips.vars.gameWindowURL);
+            chips.assets.loadAtlas("Hud", "d", chips.vars.hudsetURL);
+
+            chips.assets.canvi.gCanvas.width = chips.vars.gameWindowWidth; // load from chips.settings.js
+            chips.assets.canvi.gCanvas.height = chips.vars.gameWindowHeight; // load from chips.settings.js
+        },
+        data : function() {
+            chips.assets.getLevelset("Test");
+            chips.commands.init();
+            chips.commands.schedule.frames.set("setGameMessage", [chips.vars.defaultGameMessage]);
+            var lastLevelPlayed = (chips.util.cookie.get("lastLevelPlayed") || 1);
+            chips.commands.schedule.frames.set("loadLevel", [lastLevelPlayed]); // This won't get called until all assets are loaded anyway
+            chips.commands.schedule.frames.set("redrawAll"); // Is this necessary?
+            chips.commands.schedule.frames.set("initEvents");
+        }
+    },
+
+    /**
+     * function poll
+     * Returns the percentage of items that have been loaded which have been requested from the server
+     *
+     * @returns {number} - (requests loaded / total requests) * 100
+     */
     poll : function() {
         var r = chips.assets.requisition;
         var numLoaded = 0, total = 0;
@@ -30,44 +71,6 @@ chips.assets = {
             var percent = (numLoaded / total) * 100;
             chips.assets.areLoaded = percent >= 100.0; // If 100% of assets are loaded, set the flag to true; false otherwise
             return percent;
-        }
-    },
-
-    requisition : {
-        images : {
-
-        },
-        data : {
-
-        },
-        scripts : {
-
-        }
-    },
-
-    // Stores references to all canvasses (canvi...?) in the window that are used for CHIPS
-    canvi : {},
-
-    preload : {
-        images : function() {
-            // Create and load all canvases into the chips.assets.canvi object and initialize their settings
-            chips.assets.canvi.gCanvas = document.getElementById("gameCanvas"); // TODO: change to container?
-            chips.assets.canvi.gContext = chips.assets.canvi.gCanvas.getContext("2d");
-            chips.assets.loadAtlas("Tiles", "t", chips.vars.atlasURL);
-            chips.assets.loadAtlas("Window", "w", chips.vars.gameWindowURL);
-            chips.assets.loadAtlas("Hud", "d", chips.vars.hudsetURL);
-
-            chips.assets.canvi.gCanvas.width = chips.vars.gameWindowWidth; // load from chips.settings.js
-            chips.assets.canvi.gCanvas.height = chips.vars.gameWindowHeight; // load from chips.settings.js
-        },
-        data : function() {
-            chips.assets.getLevelset("Test");
-            chips.commands.init();
-            chips.commands.schedule.frames.set("setGameMessage", [chips.vars.defaultGameMessage]);
-            var lastLevelPlayed = (chips.util.cookie.get("lastLevelPlayed") || 1);
-            chips.commands.schedule.frames.set("loadLevel", [lastLevelPlayed]); // This won't get called until all assets are loaded anyway
-            chips.commands.schedule.frames.set("redrawAll"); // Is this necessary?
-            chips.commands.schedule.frames.set("initEvents");
         }
     },
 
