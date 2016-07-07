@@ -438,11 +438,11 @@ chips.obj = (function() {
                 entity.turn(d); // Updates entity.tile during the turn
             }
 
-            var hasUnloadCollision = chips.util.detectCollision(entity, "unload", d);
             var hasLockingCollision = chips.util.detectCollision(entity, "locking", d);
             var hasBarrierCollision = chips.util.detectCollision(entity, "barrier", d);
 
             if (!hasLockingCollision && !hasBarrierCollision) {
+                chips.util.detectCollision(entity, "unload", d);
                 entity.unset();
                 entity.x += chips.util.dir.mod(d)[0];
                 entity.y += chips.util.dir.mod(d)[1];

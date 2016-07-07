@@ -235,7 +235,7 @@ chips.util = {
             y = (typeof distantY == "undefined" ? entity.y : distantY);
         var distance = (type === "barrier" ? 1 : 0); // If type barrier, get next tile, else get this tile
 
-        if (type === "barrier" && this.edgeCollision(x, y, direction)) { return true; } // If edge of map, that's an immediate barrier
+        if (type === "barrier" && this.edgeCollision(x, y, d)) { return true; } // If edge of map, that's an immediate barrier
 
         try {
             var floorData = chips.g.rules[chips.g.tLookup[chips.g.cam.getRelativeTileLayer(x, y, d, distance, chips.draw.LAYER.FLOOR)]];

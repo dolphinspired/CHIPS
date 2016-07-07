@@ -32,6 +32,7 @@ The beta phase will begin once the game is feature-complete (compared to MS-CC1)
 
 The alpha phase of development will focus on getting all MS-CC1 features into the game and making sure the game controls accurately and, in general, adheres to the [Microsoft Ruleset](http://chipschallenge.wikia.com/wiki/Ruleset#Microsoft_ruleset).
 
+* 0.3.6 - Bugfix - "unload" collision will now only fire if "barrier"/"locking" collision are not detected
 * 0.3.5 - Moved decrementTime to the onBeforeExecute event to resolve a bug with time not updating.
 * 0.3.4 - Force floors are hard, refactoring in the meantime. Added events to the CommandQueue object and cleaned up the main loop.
 * 0.3.3 - ICE TILES ARE WORKING! The timing is a little off, but the logic is there. Next release: force floors.
