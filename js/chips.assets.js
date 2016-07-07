@@ -6,35 +6,31 @@ chips.assets = {
 
     areLoaded : false,
 
-    poll : function(group) {
+    // Returns the percentage of items that have been loaded which have been requested from the server
+    poll : function() {
         var r = chips.assets.requisition;
         var numLoaded = 0, total = 0;
 
-        if (group) {
-            for (var i in r) {
-                if (!r.hasOwnProperty(i)) { continue; }
-                total++;
-                if (r[i] > 0) numLoaded++;
-            }
-        } else {
-            for (var i in r) {
-                if (!r.hasOwnProperty(i)) { continue; }
-                if (typeof r[i] == "object") {
-                    for (var j in r[i]) {
-                        if (!r[i].hasOwnProperty(j)) { continue; }
-                        total++;
-                        if (r[i][j] > 0) numLoaded++;
-                    }
+        // Iterate over the requisition object and count the total number of objects requested.
+        // Also count how many of the requested objects have been loaded (value > 0).
+        for (var i in r) {
+            if (!r.hasOwnProperty(i)) { continue; }
+            if (typeof r[i] == "object") {
+                for (var j in r[i]) {
+                    if (!r[i].hasOwnProperty(j)) { continue; }
+                    total++;
+                    if (r[i][j] > 0) numLoaded++;
                 }
             }
         }
 
-        var percent = (numLoaded / total) * 100;
-
-        chips.assets.areLoaded = percent >= 100.0; // If 100% of assets are loaded, set the flag to true; false otherwise
-
-
-        return percent;
+        if (total === 0) {
+            return 0;
+        } else {
+            var percent = (numLoaded / total) * 100;
+            chips.assets.areLoaded = percent >= 100.0; // If 100% of assets are loaded, set the flag to true; false otherwise
+            return percent;
+        }
     },
 
     requisition : {
@@ -49,12 +45,13 @@ chips.assets = {
         }
     },
 
+    // Stores references to all canvasses (canvi...?) in the window that are used for CHIPS
     canvi : {},
 
     preload : {
         images : function() {
             // Create and load all canvases into the chips.assets.canvi object and initialize their settings
-            chips.assets.canvi.gCanvas = document.getElementById("gameCanvas");
+            chips.assets.canvi.gCanvas = document.getElementById("gameCanvas"); // TODO: change to container?
             chips.assets.canvi.gContext = chips.assets.canvi.gCanvas.getContext("2d");
             chips.assets.loadAtlas("Tiles", "t", chips.vars.atlasURL);
             chips.assets.loadAtlas("Window", "w", chips.vars.gameWindowURL);
@@ -74,6 +71,18 @@ chips.assets = {
         }
     },
 
+    /**
+     * function loadAtlas
+     * Loads an image (tile atlas) into a new canvas in the window
+     * If available, this will use the element with id = chips.vars.atlasReferenceContainerID,
+     * which should ideally be display: none.
+     *
+     * @param id - the unique id of the canvas element on which the image will be drawn (#refCanvas{id}).
+     *             Will be created if it does not already exist.
+     * @param prefix - name by which this canvas will be accessible in the canvi object - chips.assets.canvi.{prefix}Canvas
+     * @param url - location of the image to be loaded into a canvas
+     * @returns {boolean} - true if successful, false if any parameters are missing.
+     */
     loadAtlas : function(id, prefix, url) {
         if (typeof id == "undefined" || typeof prefix == "undefined" || typeof url == "undefined") {
             console.error("Parameter missing from loadAtlas. Tile atlas was not loaded.");
@@ -113,8 +122,17 @@ chips.assets = {
             chips.assets.canvi[prefix + "Context"].drawImage(imgObj,0,0);
             chips.assets.requisition.images[id]++; // Once the image has loaded, increment its spot in the requisition
         });
+
+        return true;
     },
 
+    /**
+     * function getLevelset
+     * Asynchronously loads the levelset (JSON) file from the server.
+     * Maps the JSON data to the chips.data.levels object onload.
+     *
+     * @param levelsetName - Name of the levelset file to get from the server. ("Test" will get Test.json)
+     */
     getLevelset : function(levelsetName) {
         // Set the flag for this item in requisition.data to 0 until we know it's downloaded.
         chips.assets.requisition.data[levelsetName] = 0;
